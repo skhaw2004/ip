@@ -40,6 +40,8 @@ public class Stuart {
                     break;
                 } else if (trimmedCommand.equals("list")) {
                     reply(listItems(items, itemCount));
+                } else if (itemCount >= MAX_ITEMS) {
+                    reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
                 } else {
                     items[itemCount] = command;
                     itemCount++;
