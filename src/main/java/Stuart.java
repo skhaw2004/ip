@@ -36,58 +36,72 @@ public class Stuart {
             while (scanner.hasNextLine()) {
                 String command = scanner.nextLine();
                 String trimmedCommand = command.trim();
-                if (trimmedCommand.equals("bye")) {
-                    break;
-                } else if (trimmedCommand.equals("list")) { // output list of tasks
-                    reply(listItems(items, itemCount));
-                } else if (trimmedCommand.startsWith("mark ")) { // mark a task
-                    int index = parseIndex(trimmedCommand.substring("mark ".length()));
-                    if (isValidIndex(index, itemCount)) {
-                        items[index].markAsDone();
-                        reply("Nice! I've marked this task as done:",
-                                "  " + items[index]);
-                    } else {
-                        reply("That's not a valid task number.");
-                    }
-                } else if (trimmedCommand.startsWith("unmark ")) { // unmark a task
-                    int index = parseIndex(trimmedCommand.substring("unmark ".length()));
-                    if (isValidIndex(index, itemCount)) {
-                        items[index].markAsNotDone();
-                        reply("OK, I've marked this task as not done yet:",
-                                "  " + items[index]);
-                    } else {
-                        reply("That's not a valid task number.");
-                    }
-                } else if (trimmedCommand.startsWith("todo ")) { // add a to-do
-                    String description = trimmedCommand.substring("todo ".length()).trim();
-                    itemCount = addTask(items, itemCount, new ToDos(description));
-                } else if (trimmedCommand.startsWith("deadline ")) { // add a deadline
-                    String rest = trimmedCommand.substring("deadline ".length());
-                    int byIndex = rest.indexOf("/by");
-                    if (byIndex == -1) {
-                        reply("A deadline needs a description and \"/by <when>\", "
-                                + "e.g. deadline return book /by Sunday");
-                    } else {
+                try {
+                    if (trimmedCommand.equals("bye")) {
+                        break;
+                    } else if (trimmedCommand.equals("list")) { // output list of tasks
+                        reply(listItems(items, itemCount));
+                    } else if (trimmedCommand.startsWith("mark ")) { // mark a task
+                        int index = parseIndex(trimmedCommand.substring("mark ".length()));
+                        if (isValidIndex(index, itemCount)) {
+                            items[index].markAsDone();
+                            reply("Nice! I've marked this task as done:",
+                                    "  " + items[index]);
+                        } else {
+                            throw new StuartException("That's not a valid task number.");
+                        }
+                    } else if (trimmedCommand.startsWith("unmark ")) { // unmark a task
+                        int index = parseIndex(trimmedCommand.substring("unmark ".length()));
+                        if (isValidIndex(index, itemCount)) {
+                            items[index].markAsNotDone();
+                            reply("OK, I've marked this task as not done yet:",
+                                    "  " + items[index]);
+                        } else {
+                            throw new StuartException("That's not a valid task number.");
+                        }
+                    } else if (trimmedCommand.equals("todo") || trimmedCommand.startsWith("todo ")) {
+                        // add a to-do
+                        String description = trimmedCommand.substring("todo".length()).trim();
+                        if (description.isEmpty()) {
+                            throw new StuartException("The description of a todo cannot be empty.");
+                        }
+                        itemCount = addTask(items, itemCount, new ToDos(description));
+                    } else if (trimmedCommand.equals("deadline") || trimmedCommand.startsWith("deadline ")) {
+                        // add a deadline
+                        String rest = trimmedCommand.substring("deadline".length()).trim();
+                        int byIndex = rest.indexOf("/by");
+                        if (byIndex == -1) {
+                            throw new StuartException("A deadline needs a description and \"/by <when>\", \n"
+                                    + TEXT_INDENT + "e.g. deadline return book /by Sunday");
+                        }
                         String description = rest.substring(0, byIndex).trim();
                         String by = rest.substring(byIndex + "/by".length()).trim();
+                        if (description.isEmpty()) {
+                            throw new StuartException("The description of a deadline cannot be empty.");
+                        }
                         itemCount = addTask(items, itemCount, new Deadlines(description, by));
-                    }
-                } else if (trimmedCommand.startsWith("event ")) { // add an event
-                    String rest = trimmedCommand.substring("event ".length());
-                    int fromIndex = rest.indexOf("/from");
-                    int toIndex = rest.indexOf("/to");
-                    if (fromIndex == -1 || toIndex == -1 || toIndex < fromIndex) {
-                        reply("An event needs a description, \"/from <start>\", and \"/to <end>\", "
-                                + "e.g. event meeting /from Mon 2pm /to Mon 4pm");
-                    } else {
+                    } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
+                        // add an event
+                        String rest = trimmedCommand.substring("event".length()).trim();
+                        int fromIndex = rest.indexOf("/from");
+                        int toIndex = rest.indexOf("/to");
+                        if (fromIndex == -1 || toIndex == -1 || toIndex < fromIndex) {
+                            throw new StuartException(
+                                    "An event needs a description, \"/from <start>\", and \"/to <end>\", \n"
+                                    + TEXT_INDENT + "e.g. event meeting /from Mon 2pm /to Mon 4pm");
+                        }
                         String description = rest.substring(0, fromIndex).trim();
                         String from = rest.substring(fromIndex + "/from".length(), toIndex).trim();
                         String to = rest.substring(toIndex + "/to".length()).trim();
+                        if (description.isEmpty()) {
+                            throw new StuartException("The description of an event cannot be empty.");
+                        }
                         itemCount = addTask(items, itemCount, new Events(description, from, to));
+                    } else {
+                        throw new StuartException("To add a task, use the following format:\n" + TEXT_INDENT + "<task type> <task description>");
                     }
-                } else {
-                    reply("To add a task, choose task type (todo, deadline, event) and use the following format: \n" + TEXT_INDENT + "<task type> <task description>\n"
-                            + TEXT_INDENT +  "e.g todo return book");
+                } catch (StuartException e) {
+                    reply(e.getMessage());
                 }
             }
         }
@@ -122,19 +136,17 @@ public class Stuart {
     }
 
     /**
-     * Stores {@code task} at the next free slot and reports it, unless
-     * {@code items} is already full.
+     * Stores {@code task} at the next free slot and reports it.
      *
      * @param items the backing array of stored tasks
      * @param itemCount the number of tasks currently stored
      * @param task the task to add
-     * @return the new item count: {@code itemCount + 1} if the task was
-     *         stored, or {@code itemCount} unchanged if {@code items} was full
+     * @return the new item count, {@code itemCount + 1}
+     * @throws StuartException if {@code items} is already full
      */
-    private static int addTask(Task[] items, int itemCount, Task task) {
+    private static int addTask(Task[] items, int itemCount, Task task) throws StuartException {
         if (itemCount >= MAX_ITEMS) {
-            reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
-            return itemCount;
+            throw new StuartException("OOPS!!! Sorry, I can't store more than " + MAX_ITEMS + " items.");
         }
         items[itemCount] = task;
         reply("Got it. I've added this task:\n " + TEXT_INDENT + " " + task + "\n"
