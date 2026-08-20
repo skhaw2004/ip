@@ -38,9 +38,9 @@ public class Stuart {
                 String trimmedCommand = command.trim();
                 if (trimmedCommand.equals("bye")) {
                     break;
-                } else if (trimmedCommand.equals("list")) {
+                } else if (trimmedCommand.equals("list")) { // output list of tasks
                     reply(listItems(items, itemCount));
-                } else if (trimmedCommand.startsWith("mark ")) {
+                } else if (trimmedCommand.startsWith("mark ")) { // mark a task
                     int index = parseIndex(trimmedCommand.substring("mark ".length()));
                     if (isValidIndex(index, itemCount)) {
                         items[index].markAsDone();
@@ -49,7 +49,7 @@ public class Stuart {
                     } else {
                         reply("That's not a valid task number.");
                     }
-                } else if (trimmedCommand.startsWith("unmark ")) {
+                } else if (trimmedCommand.startsWith("unmark ")) { // unmark a task
                     int index = parseIndex(trimmedCommand.substring("unmark ".length()));
                     if (isValidIndex(index, itemCount)) {
                         items[index].markAsNotDone();
@@ -58,12 +58,35 @@ public class Stuart {
                     } else {
                         reply("That's not a valid task number.");
                     }
-                } else if (itemCount >= MAX_ITEMS) {
-                    reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
+                } else if (trimmedCommand.startsWith("todo ")) { // add a to-do
+                    String description = trimmedCommand.substring("todo ".length()).trim();
+                    itemCount = addTask(items, itemCount, new ToDos(description));
+                } else if (trimmedCommand.startsWith("deadline ")) { // add a deadline
+                    String rest = trimmedCommand.substring("deadline ".length());
+                    int byIndex = rest.indexOf("/by");
+                    if (byIndex == -1) {
+                        reply("A deadline needs a description and \"/by <when>\", "
+                                + "e.g. deadline return book /by Sunday");
+                    } else {
+                        String description = rest.substring(0, byIndex).trim();
+                        String by = rest.substring(byIndex + "/by".length()).trim();
+                        itemCount = addTask(items, itemCount, new Deadlines(description, by));
+                    }
+                } else if (trimmedCommand.startsWith("event ")) { // add an event
+                    String rest = trimmedCommand.substring("event ".length());
+                    int fromIndex = rest.indexOf("/from");
+                    int toIndex = rest.indexOf("/to");
+                    if (fromIndex == -1 || toIndex == -1 || toIndex < fromIndex) {
+                        reply("An event needs a description, \"/from <start>\", and \"/to <end>\", "
+                                + "e.g. event meeting /from Mon 2pm /to Mon 4pm");
+                    } else {
+                        String description = rest.substring(0, fromIndex).trim();
+                        String from = rest.substring(fromIndex + "/from".length(), toIndex).trim();
+                        String to = rest.substring(toIndex + "/to".length()).trim();
+                        itemCount = addTask(items, itemCount, new Events(description, from, to));
+                    }
                 } else {
-                    items[itemCount] = new Task(command);
-                    itemCount++;
-                    reply("added: " + command);
+                    itemCount = addTask(items, itemCount, new Task(command));
                 }
             }
         }
@@ -98,17 +121,23 @@ public class Stuart {
     }
 
     /**
-     * Formats a single task as its done-status icon plus its description,
-     * e.g. {@code "[X] read book"}.
+     * Stores {@code task} at the next free slot and reports it, unless
+     * {@code items} is already full.
      *
-     * @param items the backing array of stored descriptions
-     * @param done the backing array of done statuses, parallel to {@code items}
-     * @param index the 0-based index of the task to format
-     * @return the formatted task line
+     * @param items the backing array of stored tasks
+     * @param itemCount the number of tasks currently stored
+     * @param task the task to add
+     * @return the new item count: {@code itemCount + 1} if the task was
+     *         stored, or {@code itemCount} unchanged if {@code items} was full
      */
-    private static String formatTask(String[] items, boolean[] done, int index) {
-        String statusIcon = done[index] ? "X" : " ";
-        return "[" + statusIcon + "] " + items[index];
+    private static int addTask(Task[] items, int itemCount, Task task) {
+        if (itemCount >= MAX_ITEMS) {
+            reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
+            return itemCount;
+        }
+        items[itemCount] = task;
+        reply("added: " + task);
+        return itemCount + 1;
     }
 
     /**
