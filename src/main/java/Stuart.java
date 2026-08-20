@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 /**
  * Entry point of the Stuart chatbot.
- * Stores whatever text the user enters, and lists it back on request,
- * until the user types {@code bye}.
+ * Stores whatever text the user enters, lists it back on request, and lets
+ * the user mark/unmark items as done, until the user types {@code bye}.
  */
 public class Stuart {
     /** Divider printed above and below every reply (without indentation). */
@@ -29,6 +29,7 @@ public class Stuart {
         reply("Hello! I'm Stuart.", "What can I do for you?");
 
         String[] items = new String[MAX_ITEMS];
+        boolean[] done = new boolean[MAX_ITEMS];
         int itemCount = 0;
 
         try (Scanner scanner = new Scanner(System.in)) {
@@ -39,11 +40,30 @@ public class Stuart {
                 if (trimmedCommand.equals("bye")) {
                     break;
                 } else if (trimmedCommand.equals("list")) {
-                    reply(listItems(items, itemCount));
+                    reply(listItems(items, done, itemCount));
+                } else if (trimmedCommand.startsWith("mark ")) {
+                    int index = parseIndex(trimmedCommand.substring("mark ".length()));
+                    if (isValidIndex(index, itemCount)) {
+                        done[index] = true;
+                        reply("Nice! I've marked this task as done:",
+                                "  " + formatTask(items, done, index));
+                    } else {
+                        reply("That's not a valid task number.");
+                    }
+                } else if (trimmedCommand.startsWith("unmark ")) {
+                    int index = parseIndex(trimmedCommand.substring("unmark ".length()));
+                    if (isValidIndex(index, itemCount)) {
+                        done[index] = false;
+                        reply("OK, I've marked this task as not done yet:",
+                                "  " + formatTask(items, done, index));
+                    } else {
+                        reply("That's not a valid task number.");
+                    }
                 } else if (itemCount >= MAX_ITEMS) {
                     reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
                 } else {
                     items[itemCount] = command;
+                    done[itemCount] = false;
                     itemCount++;
                     reply("added: " + command);
                 }
@@ -54,16 +74,59 @@ public class Stuart {
     }
 
     /**
-     * Builds the numbered listing lines for the stored items.
+     * Parses the task number following a {@code mark}/{@code unmark} command
+     * into a 0-based array index.
      *
-     * @param items the backing array of stored items
-     * @param itemCount the number of items currently stored
-     * @return one line per item, formatted as "{@code index. item}"
+     * @param indexText the text after the command word, expected to be a 1-based number
+     * @return the 0-based index, or -1 if {@code indexText} is not a valid number
      */
-    private static String[] listItems(String[] items, int itemCount) {
-        String[] lines = new String[itemCount];
+    private static int parseIndex(String indexText) {
+        try {
+            return Integer.parseInt(indexText.trim()) - 1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Checks whether {@code index} refers to an actual stored item.
+     *
+     * @param index the 0-based index to check
+     * @param itemCount the number of items currently stored
+     * @return true if {@code index} is within range
+     */
+    private static boolean isValidIndex(int index, int itemCount) {
+        return index >= 0 && index < itemCount;
+    }
+
+    /**
+     * Formats a single task as its done-status icon plus its description,
+     * e.g. {@code "[X] read book"}.
+     *
+     * @param items the backing array of stored descriptions
+     * @param done the backing array of done statuses, parallel to {@code items}
+     * @param index the 0-based index of the task to format
+     * @return the formatted task line
+     */
+    private static String formatTask(String[] items, boolean[] done, int index) {
+        String statusIcon = done[index] ? "X" : " ";
+        return "[" + statusIcon + "] " + items[index];
+    }
+
+    /**
+     * Builds the numbered listing lines for the stored items, with a header.
+     *
+     * @param items the backing array of stored descriptions
+     * @param done the backing array of done statuses, parallel to {@code items}
+     * @param itemCount the number of items currently stored
+     * @return one header line followed by one line per item,
+     *         formatted as "{@code index.[status] item}"
+     */
+    private static String[] listItems(String[] items, boolean[] done, int itemCount) {
+        String[] lines = new String[itemCount + 1];
+        lines[0] = "Here are the tasks in your list:";
         for (int i = 0; i < itemCount; i++) {
-            lines[i] = (i + 1) + ". " + items[i];
+            lines[i + 1] = (i + 1) + "." + formatTask(items, done, i);
         }
         return lines;
     }
