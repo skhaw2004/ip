@@ -59,6 +59,17 @@ public class Stuart {
                         } else {
                             throw new StuartException("That's not a valid task number.");
                         }
+                    } else if (trimmedCommand.startsWith("delete ")) {
+                        // delete a task
+                        int index = parseIndex(trimmedCommand.substring("delete ".length()));
+                        if (isValidIndex(index, items.size())) {
+                            Task removedTask = items.remove(index);
+                            reply("Noted. I've removed this task:",
+                                    "  " + removedTask,
+                                    "Now you have " + items.size() + " tasks in the list.");
+                        } else {
+                            throw new StuartException("That's not a valid task number.");
+                        }
                     } else if (trimmedCommand.equals("todo") || trimmedCommand.startsWith("todo ")) {
                         // add a to-do
                         String description = trimmedCommand.substring("todo".length()).trim();
