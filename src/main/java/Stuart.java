@@ -136,7 +136,8 @@ public class Stuart {
             return itemCount;
         }
         items[itemCount] = task;
-        reply("added: " + task);
+        reply("Got it. I've added this task:\n " + TEXT_INDENT + " " + task + "\n"
+                + TEXT_INDENT + "Now you have " + (itemCount + 1) + " tasks in the list.");
         return itemCount + 1;
     }
 
