@@ -38,7 +38,6 @@ public class Task {
      */
     @Override
     public String toString() {
-        // TODO
-        return null;
+        return "[" + this.getStatusIcon() + "] " + this.description;
     }
 }

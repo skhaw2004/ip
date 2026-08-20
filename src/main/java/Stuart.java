@@ -28,8 +28,7 @@ public class Stuart {
 
         reply("Hello! I'm Stuart.", "What can I do for you?");
 
-        String[] items = new String[MAX_ITEMS];
-        boolean[] done = new boolean[MAX_ITEMS];
+        Task[] items = new Task[MAX_ITEMS];
         int itemCount = 0;
 
         try (Scanner scanner = new Scanner(System.in)) {
@@ -40,30 +39,29 @@ public class Stuart {
                 if (trimmedCommand.equals("bye")) {
                     break;
                 } else if (trimmedCommand.equals("list")) {
-                    reply(listItems(items, done, itemCount));
+                    reply(listItems(items, itemCount));
                 } else if (trimmedCommand.startsWith("mark ")) {
                     int index = parseIndex(trimmedCommand.substring("mark ".length()));
                     if (isValidIndex(index, itemCount)) {
-                        done[index] = true;
+                        items[index].markAsDone();
                         reply("Nice! I've marked this task as done:",
-                                "  " + formatTask(items, done, index));
+                                "  " + items[index]);
                     } else {
                         reply("That's not a valid task number.");
                     }
                 } else if (trimmedCommand.startsWith("unmark ")) {
                     int index = parseIndex(trimmedCommand.substring("unmark ".length()));
                     if (isValidIndex(index, itemCount)) {
-                        done[index] = false;
+                        items[index].markAsNotDone();
                         reply("OK, I've marked this task as not done yet:",
-                                "  " + formatTask(items, done, index));
+                                "  " + items[index]);
                     } else {
                         reply("That's not a valid task number.");
                     }
                 } else if (itemCount >= MAX_ITEMS) {
                     reply("Sorry, I can't store more than " + MAX_ITEMS + " items.");
                 } else {
-                    items[itemCount] = command;
-                    done[itemCount] = false;
+                    items[itemCount] = new Task(command);
                     itemCount++;
                     reply("added: " + command);
                 }
@@ -117,16 +115,15 @@ public class Stuart {
      * Builds the numbered listing lines for the stored items, with a header.
      *
      * @param items the backing array of stored descriptions
-     * @param done the backing array of done statuses, parallel to {@code items}
      * @param itemCount the number of items currently stored
      * @return one header line followed by one line per item,
      *         formatted as "{@code index.[status] item}"
      */
-    private static String[] listItems(String[] items, boolean[] done, int itemCount) {
+    private static String[] listItems(Task[] items, int itemCount) {
         String[] lines = new String[itemCount + 1];
         lines[0] = "Here are the tasks in your list:";
         for (int i = 0; i < itemCount; i++) {
-            lines[i + 1] = (i + 1) + "." + formatTask(items, done, i);
+            lines[i + 1] = (i + 1) + "." + items[i];
         }
         return lines;
     }
