@@ -86,7 +86,8 @@ public class Stuart {
                         itemCount = addTask(items, itemCount, new Events(description, from, to));
                     }
                 } else {
-                    itemCount = addTask(items, itemCount, new Task(command));
+                    reply("To add a task, choose task type (todo, deadline, event) and use the following format: \n" + TEXT_INDENT + "<task type> <task description>\n"
+                            + TEXT_INDENT +  "e.g todo return book");
                 }
             }
         }
