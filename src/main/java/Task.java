@@ -1,10 +1,12 @@
 public class Task {
     protected String description;
     protected boolean isDone;
+    protected TaskType type;
 
-    public Task(String description) {
+    public Task(String description, TaskType type) {
         this.description = description;
         this.isDone = false;
+        this.type = type;
     }
 
     /**
@@ -32,12 +34,13 @@ public class Task {
 
 
     /**
-     * Returns this task formatted as "[X] description" or "[ ] description".
+     * Returns this task formatted as "[T][X] description" or "[T][ ] description",
+     * with the leading tag depending on {@link #type}.
      *
      * @return the formatted task line
      */
     @Override
     public String toString() {
-        return "[" + this.getStatusIcon() + "] " + this.description;
+        return "[" + type.getTag() + "][" + this.getStatusIcon() + "] " + this.description;
     }
 }
