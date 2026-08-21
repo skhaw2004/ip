@@ -16,6 +16,7 @@ public class Stuart {
     /** Indentation applied to every line of text Stuart prints. */
     private static final String TEXT_INDENT = "     ";
 
+    // Creating of STUART banner was assisted by Claude Code
     public static void main(String[] args) {
         String banner = " ____   _                       _   \n"
                 + "/ ___| | |_  _   _   __ _  _ __ | |_ \n"
