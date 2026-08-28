@@ -36,4 +36,9 @@ public class Events extends Task {
     public Optional<LocalDate> getSortDate() {
         return Optional.of(from);
     }
+
+    @Override
+    public boolean isOverdue() {
+        return !isDone && to.isBefore(LocalDate.now());
+    }
 }

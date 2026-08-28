@@ -80,4 +80,15 @@ public class Task {
     public Optional<LocalDate> getSortDate() {
         return Optional.empty();
     }
+
+    /**
+     * Checks whether this task is overdue: its date has passed and it is
+     * not yet done. A plain to-do is never overdue, since it has no date,
+     * and a done task is never overdue regardless of its date.
+     *
+     * @return true if this task is overdue
+     */
+    public boolean isOverdue() {
+        return false;
+    }
 }

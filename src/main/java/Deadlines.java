@@ -32,4 +32,9 @@ public class Deadlines extends Task {
     public Optional<LocalDate> getSortDate() {
         return Optional.of(by);
     }
+
+    @Override
+    public boolean isOverdue() {
+        return !isDone && by.isBefore(LocalDate.now());
+    }
 }
