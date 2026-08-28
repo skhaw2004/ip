@@ -1,11 +1,7 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Scanner;
 
 /**
  * Entry point of the Stuart chatbot.
@@ -17,9 +13,11 @@ public class Stuart {
     private static final String DATA_FILE_PATH = "./data/stuart.txt";
 
     private final Ui ui;
+    private final Storage storage;
 
-    public Stuart() {
+    public Stuart(String filePath) {
         this.ui = new Ui();
+        this.storage = new Storage(filePath);
     }
 
     /**
@@ -30,7 +28,13 @@ public class Stuart {
         ui.showBanner();
         ui.reply("Hello! I'm Stuart.", "What can I do for you?");
 
-        ArrayList<Task> items = loadTasks();
+        ArrayList<Task> items;
+        try {
+            items = storage.load(ui);
+        } catch (StuartException e) {
+            ui.reply("Warning: " + e.getMessage() + ".");
+            items = new ArrayList<>();
+        }
 
         // Keep reading commands until the user says "bye", or the input runs out.
         while (ui.hasNextCommand()) {
@@ -58,7 +62,7 @@ public class Stuart {
                     int index = parseIndex(trimmedCommand.substring("mark ".length()));
                     if (isValidIndex(index, items.size())) {
                         items.get(index).markAsDone();
-                        saveTasks(items);
+                        storage.save(items, ui);
                         ui.reply("Nice! I've marked this task as done:",
                                 "  " + withOverdueFlag(items.get(index)));
                     } else {
@@ -69,7 +73,7 @@ public class Stuart {
                     int index = parseIndex(trimmedCommand.substring("unmark ".length()));
                     if (isValidIndex(index, items.size())) {
                         items.get(index).markAsNotDone();
-                        saveTasks(items);
+                        storage.save(items, ui);
                         ui.reply("OK, I've marked this task as not done yet:",
                                 "  " + withOverdueFlag(items.get(index)));
                     } else {
@@ -80,7 +84,7 @@ public class Stuart {
                     int index = parseIndex(trimmedCommand.substring("delete ".length()));
                     if (isValidIndex(index, items.size())) {
                         Task removedTask = items.remove(index);
-                        saveTasks(items);
+                        storage.save(items, ui);
                         ui.reply("Noted. I've removed this task:",
                                 "  " + withOverdueFlag(removedTask),
                                 "Now you have " + items.size() + " tasks in the list.");
@@ -154,7 +158,7 @@ public class Stuart {
     }
 
     public static void main(String[] args) {
-        new Stuart().run();
+        new Stuart(DATA_FILE_PATH).run();
     }
 
     /**
@@ -222,103 +226,9 @@ public class Stuart {
      */
     private void addTask(ArrayList<Task> items, Task task) {
         items.add(task);
-        saveTasks(items);
+        storage.save(items, ui);
         ui.reply("Got it. I've added this task:", "  " + withOverdueFlag(task),
                 "Now you have " + items.size() + " tasks in the list.");
-    }
-
-    /**
-     * Loads the task list from the save file at {@link #DATA_FILE_PATH}.
-     * Returns an empty list if the file does not exist yet (e.g. first run).
-     * A line that cannot be parsed is skipped with a warning rather than
-     * aborting the whole load, so one corrupted line doesn't cost every
-     * other saved task.
-     *
-     * @return the loaded tasks, in the order they appear in the file
-     */
-    private ArrayList<Task> loadTasks() {
-        ArrayList<Task> items = new ArrayList<>();
-        File dataFile = new File(DATA_FILE_PATH);
-        if (!dataFile.exists()) {
-            return items;
-        }
-        try (Scanner fileScanner = new Scanner(dataFile)) {
-            while (fileScanner.hasNextLine()) {
-                String line = fileScanner.nextLine().trim();
-                if (line.isEmpty()) {
-                    continue;
-                }
-                try {
-                    items.add(parseSavedTask(line));
-                } catch (StuartException e) {
-                    ui.reply("Warning: skipping a corrupted saved task (" + e.getMessage() + ").");
-                }
-            }
-        } catch (IOException e) {
-            ui.reply("Warning: could not load saved tasks (" + e.getMessage() + ").");
-        }
-        return items;
-    }
-
-    /**
-     * Parses one line of the save file into a {@link Task}.
-     *
-     * @param line one line from the save file, e.g. {@code "T | 1 | read book"}
-     * @return the task the line describes
-     * @throws StuartException if {@code line} is not validly formatted
-     */
-    private static Task parseSavedTask(String line) throws StuartException {
-        String[] parts = line.split(" \\| ");
-        if (parts.length < 3) {
-            throw new StuartException("expected at least 3 fields: \"" + line + "\"");
-        }
-        String type = parts[0].trim();
-        boolean isDone = parts[1].trim().equals("1");
-        String description = parts[2].trim();
-
-        Task task;
-        if (type.equals("T")) {
-            task = new ToDos(description);
-        } else if (type.equals("D")) {
-            if (parts.length < 4) {
-                throw new StuartException("deadline is missing its \"by\" field: \"" + line + "\"");
-            }
-            task = new Deadlines(description, parseDate(parts[3].trim()));
-        } else if (type.equals("E")) {
-            if (parts.length < 5) {
-                throw new StuartException("event is missing its \"from\"/\"to\" fields: \"" + line + "\"");
-            }
-            task = new Events(description, parseDate(parts[3].trim()), parseDate(parts[4].trim()));
-        } else {
-            throw new StuartException("unknown task type \"" + type + "\": \"" + line + "\"");
-        }
-
-        if (isDone) {
-            task.markAsDone();
-        }
-        return task;
-    }
-
-    /**
-     * Overwrites the save file at {@link #DATA_FILE_PATH} with the current
-     * task list, creating the containing directory if needed. If the write
-     * fails, reports it but leaves the in-memory task list untouched.
-     *
-     * @param items the list of stored tasks
-     */
-    private void saveTasks(ArrayList<Task> items) {
-        File dataFile = new File(DATA_FILE_PATH);
-        File parentDir = dataFile.getParentFile();
-        if (parentDir != null) {
-            parentDir.mkdirs();
-        }
-        try (FileWriter writer = new FileWriter(dataFile)) {
-            for (Task task : items) {
-                writer.write(task.toSaveFormat() + System.lineSeparator());
-            }
-        } catch (IOException e) {
-            ui.reply("Warning: could not save tasks to disk (" + e.getMessage() + ").");
-        }
     }
 
     /**
