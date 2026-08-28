@@ -36,6 +36,7 @@ list
 todo
 mark 1
 delete 1
+deadline future task /by 2099-01-01
 list
 delete
 mark

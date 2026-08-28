@@ -82,7 +82,7 @@ public class Stuart {
                             items.get(index).markAsDone();
                             saveTasks(items);
                             reply("Nice! I've marked this task as done:",
-                                    "  " + items.get(index));
+                                    "  " + withOverdueFlag(items.get(index)));
                         } else {
                             throw new StuartException("That's not a valid task number.");
                         }
@@ -93,7 +93,7 @@ public class Stuart {
                             items.get(index).markAsNotDone();
                             saveTasks(items);
                             reply("OK, I've marked this task as not done yet:",
-                                    "  " + items.get(index));
+                                    "  " + withOverdueFlag(items.get(index)));
                         } else {
                             throw new StuartException("That's not a valid task number.");
                         }
@@ -104,7 +104,7 @@ public class Stuart {
                             Task removedTask = items.remove(index);
                             saveTasks(items);
                             reply("Noted. I've removed this task:",
-                                    "  " + removedTask,
+                                    "  " + withOverdueFlag(removedTask),
                                     "Now you have " + items.size() + " tasks in the list.");
                         } else {
                             throw new StuartException("That's not a valid task number.");
@@ -290,7 +290,7 @@ public class Stuart {
     private static void addTask(ArrayList<Task> items, Task task) {
         items.add(task);
         saveTasks(items);
-        reply("Got it. I've added this task:", "  " + task,
+        reply("Got it. I've added this task:", "  " + withOverdueFlag(task),
                 "Now you have " + items.size() + " tasks in the list.");
     }
 
@@ -400,9 +400,36 @@ public class Stuart {
         String[] lines = new String[items.size() + 1];
         lines[0] = header;
         for (int i = 0; i < items.size(); i++) {
-            lines[i + 1] = (i + 1) + "." + items.get(i);
+            lines[i + 1] = formatNumberedTask(i + 1, items.get(i));
         }
         return lines;
+    }
+
+    /**
+     * Formats one numbered line for a task, appending {@code [OVERDUE]} if
+     * the task is overdue.
+     *
+     * @param number the 1-based number to display
+     * @param task the task to format
+     * @return the formatted line, e.g. {@code "1.[D][ ] return book (by: Oct 20 2019) [OVERDUE]"}
+     */
+    private static String formatNumberedTask(int number, Task task) {
+        return number + "." + withOverdueFlag(task);
+    }
+
+    /**
+     * Formats a task as its normal display text, with {@code [OVERDUE]}
+     * appended if it is overdue.
+     *
+     * @param task the task to format
+     * @return the formatted text, e.g. {@code "[D][ ] return book (by: Oct 20 2019) [OVERDUE]"}
+     */
+    private static String withOverdueFlag(Task task) {
+        String text = task.toString();
+        if (task.isOverdue()) {
+            text += " [OVERDUE]";
+        }
+        return text;
     }
 
     /**
@@ -456,7 +483,7 @@ public class Stuart {
         lines.add("Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":");
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i).occursOn(date)) {
-                lines.add((i + 1) + "." + items.get(i));
+                lines.add(formatNumberedTask(i + 1, items.get(i)));
             }
         }
         return lines.toArray(new String[0]);
