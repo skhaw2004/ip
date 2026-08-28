@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Scanner;
 
 /**
@@ -62,7 +63,10 @@ public class Stuart {
                         break;
                     } else if (trimmedCommand.equals("list")) {
                         // output list of tasks
-                        reply(listItems(items));
+                        reply(listItems(items, "Here are the tasks in your list:"));
+                    } else if (trimmedCommand.equals("sorted")) {
+                        // output list of tasks sorted by date, dateless tasks last
+                        reply(listItems(sortedByDate(items), "Here are your tasks sorted by date:"));
                     } else if (trimmedCommand.equals("on") || trimmedCommand.startsWith("on ")) {
                         // list tasks occurring on a specific date
                         String dateText = trimmedCommand.substring("on".length()).trim();
@@ -385,19 +389,56 @@ public class Stuart {
     }
 
     /**
-     * Builds the numbered listing lines for the stored items, with a header.
+     * Builds the numbered listing lines for {@code items}, with the given header.
      *
-     * @param items the list of stored tasks
+     * @param items the tasks to list, in the order they should be numbered
+     * @param header the line to print above the numbered list
      * @return one header line followed by one line per item,
      *         formatted as "{@code index.[status] item}"
      */
-    private static String[] listItems(ArrayList<Task> items) {
+    private static String[] listItems(ArrayList<Task> items, String header) {
         String[] lines = new String[items.size() + 1];
-        lines[0] = "Here are the tasks in your list:";
+        lines[0] = header;
         for (int i = 0; i < items.size(); i++) {
             lines[i + 1] = (i + 1) + "." + items.get(i);
         }
         return lines;
+    }
+
+    /**
+     * Returns a copy of {@code items} sorted by date ({@code Deadlines} by
+     * {@code by}, {@code Events} by {@code from}), with dateless tasks
+     * (i.e. {@code ToDos}) placed last. Does not modify {@code items} itself.
+     *
+     * @param items the list of stored tasks
+     * @return a new, sorted list
+     */
+    private static ArrayList<Task> sortedByDate(ArrayList<Task> items) {
+        ArrayList<Task> sorted = new ArrayList<>(items);
+        sorted.sort(Stuart::compareByDate);
+        return sorted;
+    }
+
+    /**
+     * Compares two tasks by their sort date, treating a missing date as
+     * later than any present date.
+     *
+     * @param a the first task
+     * @param b the second task
+     * @return a negative number if {@code a} sorts before {@code b}, zero if
+     *         equal, or a positive number if {@code a} sorts after {@code b}
+     */
+    private static int compareByDate(Task a, Task b) {
+        Optional<LocalDate> dateA = a.getSortDate();
+        Optional<LocalDate> dateB = b.getSortDate();
+        if (dateA.isEmpty() && dateB.isEmpty()) {
+            return 0;
+        } else if (dateA.isEmpty()) {
+            return 1;
+        } else if (dateB.isEmpty()) {
+            return -1;
+        }
+        return dateA.get().compareTo(dateB.get());
     }
 
     /**
