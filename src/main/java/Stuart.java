@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -109,8 +111,8 @@ public class Stuart {
                         String rest = trimmedCommand.substring("deadline".length()).trim();
                         int byIndex = rest.indexOf("/by");
                         if (byIndex == -1) {
-                            throw new StuartException("A deadline needs a description and \"/by <when>\", \n"
-                                    + TEXT_INDENT + "e.g. deadline return book /by Sunday");
+                            throw new StuartException("A deadline needs a description and \"/by <yyyy-MM-dd>\", \n"
+                                    + TEXT_INDENT + "e.g. deadline return book /by 2019-10-15");
                         }
                         String description = rest.substring(0, byIndex).trim();
                         String by = rest.substring(byIndex + "/by".length()).trim();
@@ -122,8 +124,8 @@ public class Stuart {
                             throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
                         }
                         checkNoSaveDelimiter(description);
-                        checkNoSaveDelimiter(by);
-                        addTask(items, new Deadlines(description, by));
+                        LocalDate byDate = parseDate(by);
+                        addTask(items, new Deadlines(description, byDate));
                     } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
                         // add an event
                         String rest = trimmedCommand.substring("event".length()).trim();
@@ -131,8 +133,8 @@ public class Stuart {
                         int toIndex = rest.indexOf("/to");
                         if (fromIndex == -1 || toIndex == -1 || toIndex < fromIndex) {
                             throw new StuartException(
-                                    "An event needs a description, \"/from <start>\", and \"/to <end>\", \n"
-                                    + TEXT_INDENT + "e.g. event meeting /from Mon 2pm /to Mon 4pm");
+                                    "An event needs a description, \"/from <yyyy-MM-dd>\", and \"/to <yyyy-MM-dd>\", \n"
+                                    + TEXT_INDENT + "e.g. event meeting /from 2019-10-15 /to 2019-10-16");
                         }
                         String description = rest.substring(0, fromIndex).trim();
                         String from = rest.substring(fromIndex + "/from".length(), toIndex).trim();
@@ -145,9 +147,9 @@ public class Stuart {
                             throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
                         }
                         checkNoSaveDelimiter(description);
-                        checkNoSaveDelimiter(from);
-                        checkNoSaveDelimiter(to);
-                        addTask(items, new Events(description, from, to));
+                        LocalDate fromDate = parseDate(from);
+                        LocalDate toDate = parseDate(to);
+                        addTask(items, new Events(description, fromDate, toDate));
                     } else {
                         // not any of the tasks
                         throw new StuartException("To add a task, use the following format:\n" + TEXT_INDENT + "<task type> <task description>");
@@ -252,6 +254,22 @@ public class Stuart {
     }
 
     /**
+     * Parses a date in {@code yyyy-MM-dd} format, e.g. {@code "2019-10-15"}.
+     *
+     * @param text the date text to parse
+     * @return the parsed date
+     * @throws StuartException if {@code text} is not a valid {@code yyyy-MM-dd} date
+     */
+    private static LocalDate parseDate(String text) throws StuartException {
+        try {
+            return LocalDate.parse(text);
+        } catch (DateTimeParseException e) {
+            throw new StuartException(
+                    "\"" + text + "\" is not a valid date. Please use yyyy-MM-dd, e.g. 2019-10-15.");
+        }
+    }
+
+    /**
      * Appends {@code task} to {@code items} and reports it.
      *
      * @param items the list of stored tasks
@@ -320,12 +338,12 @@ public class Stuart {
             if (parts.length < 4) {
                 throw new StuartException("deadline is missing its \"by\" field: \"" + line + "\"");
             }
-            task = new Deadlines(description, parts[3].trim());
+            task = new Deadlines(description, parseDate(parts[3].trim()));
         } else if (type.equals("E")) {
             if (parts.length < 5) {
                 throw new StuartException("event is missing its \"from\"/\"to\" fields: \"" + line + "\"");
             }
-            task = new Events(description, parts[3].trim(), parts[4].trim());
+            task = new Events(description, parseDate(parts[3].trim()), parseDate(parts[4].trim()));
         } else {
             throw new StuartException("unknown task type \"" + type + "\": \"" + line + "\"");
         }
