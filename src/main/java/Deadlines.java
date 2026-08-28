@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.util.Optional;
 
 /**
  * Represents a task that needs to be done before a specific date/time.
@@ -25,5 +26,10 @@ public class Deadlines extends Task {
     @Override
     public boolean occursOn(LocalDate date) {
         return by.equals(date);
+    }
+
+    @Override
+    public Optional<LocalDate> getSortDate() {
+        return Optional.of(by);
     }
 }

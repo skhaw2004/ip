@@ -1,5 +1,6 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public class Task {
     /** Formatter used to display deadline/event dates, e.g. "Oct 15 2019". */
@@ -68,5 +69,15 @@ public class Task {
      */
     public boolean occursOn(LocalDate date) {
         return false;
+    }
+
+    /**
+     * Returns the date this task should be sorted by, if it has one.
+     * A plain to-do has no date, so it sorts after every dated task.
+     *
+     * @return the sort date, or {@link Optional#empty()} if this task has none
+     */
+    public Optional<LocalDate> getSortDate() {
+        return Optional.empty();
     }
 }

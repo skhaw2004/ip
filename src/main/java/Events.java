@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.util.Optional;
 
 /**
  * Represents a task that starts at a specific date/time and ends at a
@@ -29,5 +30,10 @@ public class Events extends Task {
     @Override
     public boolean occursOn(LocalDate date) {
         return !date.isBefore(from) && !date.isAfter(to);
+    }
+
+    @Override
+    public Optional<LocalDate> getSortDate() {
+        return Optional.of(from);
     }
 }
