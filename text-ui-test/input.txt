@@ -1,3 +1,4 @@
+list
 todo read book
 todo
 deadline return book /by Sunday
