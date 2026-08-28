@@ -25,4 +25,9 @@ public class Events extends Task {
     public String toSaveFormat() {
         return super.toSaveFormat() + " | " + from + " | " + to;
     }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return !date.isBefore(from) && !date.isAfter(to);
+    }
 }

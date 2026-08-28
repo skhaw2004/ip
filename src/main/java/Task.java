@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class Task {
@@ -56,5 +57,16 @@ public class Task {
      */
     public String toSaveFormat() {
         return type.getTag() + " | " + (isDone ? "1" : "0") + " | " + description;
+    }
+
+    /**
+     * Checks whether this task occurs on the given date. A plain to-do never
+     * occurs on any date, since it has none.
+     *
+     * @param date the date to check
+     * @return true if this task occurs on {@code date}
+     */
+    public boolean occursOn(LocalDate date) {
+        return false;
     }
 }

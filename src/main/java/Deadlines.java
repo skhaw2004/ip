@@ -21,4 +21,9 @@ public class Deadlines extends Task {
     public String toSaveFormat() {
         return super.toSaveFormat() + " | " + by;
     }
+
+    @Override
+    public boolean occursOn(LocalDate date) {
+        return by.equals(date);
+    }
 }
