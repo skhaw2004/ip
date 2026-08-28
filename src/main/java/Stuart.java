@@ -63,6 +63,14 @@ public class Stuart {
                     } else if (trimmedCommand.equals("list")) {
                         // output list of tasks
                         reply(listItems(items));
+                    } else if (trimmedCommand.equals("on") || trimmedCommand.startsWith("on ")) {
+                        // list tasks occurring on a specific date
+                        String dateText = trimmedCommand.substring("on".length()).trim();
+                        if (dateText.isEmpty()) {
+                            throw new StuartException("Please specify a date, e.g. \"on 2019-10-15\".");
+                        }
+                        LocalDate date = parseDate(dateText);
+                        reply(tasksOn(items, date));
                     } else if (trimmedCommand.startsWith("mark ")) {
                         // mark a task
                         int index = parseIndex(trimmedCommand.substring("mark ".length()));
@@ -390,6 +398,27 @@ public class Stuart {
             lines[i + 1] = (i + 1) + "." + items.get(i);
         }
         return lines;
+    }
+
+    /**
+     * Builds the numbered listing lines for the tasks occurring on
+     * {@code date}, with a header. Item numbers match their position in the
+     * full task list, so they can be used directly with {@code mark}/
+     * {@code unmark}/{@code delete}.
+     *
+     * @param items the list of stored tasks
+     * @param date the date to filter by
+     * @return one header line followed by one line per matching item
+     */
+    private static String[] tasksOn(ArrayList<Task> items, LocalDate date) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":");
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).occursOn(date)) {
+                lines.add((i + 1) + "." + items.get(i));
+            }
+        }
+        return lines.toArray(new String[0]);
     }
 
     /**

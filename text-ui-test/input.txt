@@ -14,6 +14,12 @@ event task /from 15/10/2019 /to 2019-10-16
 todo buy milk | eggs
 blah
 list
+on 2019-10-20
+on 2019-10-21
+on 2019-10-22
+on 2019-10-19
+on
+on notadate
 mark 2
 mark 0
 mark 99
