@@ -1,3 +1,4 @@
+list
 todo read book
 todo
 deadline return book /by Sunday
@@ -5,6 +6,10 @@ deadline nodate
 deadline /by Monday
 event meeting /from Mon 2pm /to Mon 4pm
 event bad /to Mon 4pm /from Mon 2pm
+deadline task /by
+event task /from /to end
+event task /from start /to
+todo buy milk | eggs
 blah
 list
 mark 2
