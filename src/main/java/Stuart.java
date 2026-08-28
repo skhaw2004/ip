@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,26 +15,27 @@ public class Stuart {
 
     private final Ui ui;
     private final Storage storage;
+    private TaskList tasks;
 
     public Stuart(String filePath) {
         this.ui = new Ui();
         this.storage = new Storage(filePath);
+        this.tasks = new TaskList();
     }
 
     /**
-     * Runs the chatbot: shows the banner and greeting, then repeatedly reads
-     * and executes commands until the user types {@code bye} or input runs out.
+     * Runs the chatbot: shows the banner and greeting, loads any previously
+     * saved tasks, then repeatedly reads and executes commands until the
+     * user types {@code bye} or input runs out.
      */
     public void run() {
         ui.showBanner();
         ui.reply("Hello! I'm Stuart.", "What can I do for you?");
 
-        ArrayList<Task> items;
         try {
-            items = storage.load(ui);
+            tasks = new TaskList(storage.load(ui));
         } catch (StuartException e) {
             ui.reply("Warning: " + e.getMessage() + ".");
-            items = new ArrayList<>();
         }
 
         // Keep reading commands until the user says "bye", or the input runs out.
@@ -45,10 +47,10 @@ public class Stuart {
                     break;
                 } else if (trimmedCommand.equals("list")) {
                     // output list of tasks
-                    ui.reply(listItems(items, "Here are the tasks in your list:"));
+                    ui.reply(listItems(tasks.getAll(), "Here are the tasks in your list:"));
                 } else if (trimmedCommand.equals("sorted")) {
                     // output list of tasks sorted by date, dateless tasks last
-                    ui.reply(listItems(sortedByDate(items), "Here are your tasks sorted by date:"));
+                    ui.reply(listItems(sortedByDate(tasks.getAll()), "Here are your tasks sorted by date:"));
                 } else if (trimmedCommand.equals("on") || trimmedCommand.startsWith("on ")) {
                     // list tasks occurring on a specific date
                     String dateText = trimmedCommand.substring("on".length()).trim();
@@ -56,41 +58,29 @@ public class Stuart {
                         throw new StuartException("Please specify a date, e.g. \"on 2019-10-15\".");
                     }
                     LocalDate date = parseDate(dateText);
-                    ui.reply(tasksOn(items, date));
+                    ui.reply(tasksOn(tasks.getAll(), date));
                 } else if (trimmedCommand.startsWith("mark ")) {
                     // mark a task
                     int index = parseIndex(trimmedCommand.substring("mark ".length()));
-                    if (isValidIndex(index, items.size())) {
-                        items.get(index).markAsDone();
-                        storage.save(items, ui);
-                        ui.reply("Nice! I've marked this task as done:",
-                                "  " + withOverdueFlag(items.get(index)));
-                    } else {
-                        throw new StuartException("That's not a valid task number.");
-                    }
+                    Task task = tasks.get(index);
+                    task.markAsDone();
+                    storage.save(tasks.getAll(), ui);
+                    ui.reply("Nice! I've marked this task as done:", "  " + withOverdueFlag(task));
                 } else if (trimmedCommand.startsWith("unmark ")) {
                     // unmark a task
                     int index = parseIndex(trimmedCommand.substring("unmark ".length()));
-                    if (isValidIndex(index, items.size())) {
-                        items.get(index).markAsNotDone();
-                        storage.save(items, ui);
-                        ui.reply("OK, I've marked this task as not done yet:",
-                                "  " + withOverdueFlag(items.get(index)));
-                    } else {
-                        throw new StuartException("That's not a valid task number.");
-                    }
+                    Task task = tasks.get(index);
+                    task.markAsNotDone();
+                    storage.save(tasks.getAll(), ui);
+                    ui.reply("OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task));
                 } else if (trimmedCommand.startsWith("delete ")) {
                     // delete a task
                     int index = parseIndex(trimmedCommand.substring("delete ".length()));
-                    if (isValidIndex(index, items.size())) {
-                        Task removedTask = items.remove(index);
-                        storage.save(items, ui);
-                        ui.reply("Noted. I've removed this task:",
-                                "  " + withOverdueFlag(removedTask),
-                                "Now you have " + items.size() + " tasks in the list.");
-                    } else {
-                        throw new StuartException("That's not a valid task number.");
-                    }
+                    Task removedTask = tasks.delete(index);
+                    storage.save(tasks.getAll(), ui);
+                    ui.reply("Noted. I've removed this task:",
+                            "  " + withOverdueFlag(removedTask),
+                            "Now you have " + tasks.size() + " tasks in the list.");
                 } else if (trimmedCommand.equals("todo") || trimmedCommand.startsWith("todo ")) {
                     // add a to-do
                     String description = trimmedCommand.substring("todo".length()).trim();
@@ -99,7 +89,7 @@ public class Stuart {
                         throw new StuartException("The description of a todo cannot be empty.");
                     }
                     checkNoSaveDelimiter(description);
-                    addTask(items, new ToDos(description));
+                    addTask(new ToDos(description));
                 } else if (trimmedCommand.equals("deadline") || trimmedCommand.startsWith("deadline ")) {
                     // add a deadline
                     String rest = trimmedCommand.substring("deadline".length()).trim();
@@ -119,7 +109,7 @@ public class Stuart {
                     }
                     checkNoSaveDelimiter(description);
                     LocalDate byDate = parseDate(by);
-                    addTask(items, new Deadlines(description, byDate));
+                    addTask(new Deadlines(description, byDate));
                 } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
                     // add an event
                     String rest = trimmedCommand.substring("event".length()).trim();
@@ -143,7 +133,7 @@ public class Stuart {
                     checkNoSaveDelimiter(description);
                     LocalDate fromDate = parseDate(from);
                     LocalDate toDate = parseDate(to);
-                    addTask(items, new Events(description, fromDate, toDate));
+                    addTask(new Events(description, fromDate, toDate));
                 } else {
                     // not any of the tasks
                     throw new StuartException("To add a task, use the following format:\n" + Ui.TEXT_INDENT + "<task type> <task description>");
@@ -162,8 +152,10 @@ public class Stuart {
     }
 
     /**
-     * Parses the task number following a {@code mark}/{@code unmark} command
-     * into a 0-based array index.
+     * Parses the task number following a {@code mark}/{@code unmark}/
+     * {@code delete} command into a 0-based index. An invalid number (not
+     * parseable, or out of range) surfaces as a {@link StuartException} the
+     * first time it's used to access {@link #tasks}, not here.
      *
      * @param indexText the text after the command word, expected to be a 1-based number
      * @return the 0-based index, or -1 if {@code indexText} is not a valid number
@@ -174,17 +166,6 @@ public class Stuart {
         } catch (NumberFormatException e) {
             return -1;
         }
-    }
-
-    /**
-     * Checks whether {@code index} refers to an actual stored item.
-     *
-     * @param index the 0-based index to check
-     * @param itemCount the number of items currently stored
-     * @return true if {@code index} is within range
-     */
-    private static boolean isValidIndex(int index, int itemCount) {
-        return index >= 0 && index < itemCount;
     }
 
     /**
@@ -219,16 +200,15 @@ public class Stuart {
     }
 
     /**
-     * Appends {@code task} to {@code items} and reports it.
+     * Appends {@code task} to {@link #tasks} and reports it.
      *
-     * @param items the list of stored tasks
      * @param task the task to add
      */
-    private void addTask(ArrayList<Task> items, Task task) {
-        items.add(task);
-        storage.save(items, ui);
+    private void addTask(Task task) {
+        tasks.add(task);
+        storage.save(tasks.getAll(), ui);
         ui.reply("Got it. I've added this task:", "  " + withOverdueFlag(task),
-                "Now you have " + items.size() + " tasks in the list.");
+                "Now you have " + tasks.size() + " tasks in the list.");
     }
 
     /**
@@ -239,7 +219,7 @@ public class Stuart {
      * @return one header line followed by one line per item,
      *         formatted as "{@code index.[status] item}"
      */
-    private static String[] listItems(ArrayList<Task> items, String header) {
+    private static String[] listItems(List<Task> items, String header) {
         String[] lines = new String[items.size() + 1];
         lines[0] = header;
         for (int i = 0; i < items.size(); i++) {
@@ -283,7 +263,7 @@ public class Stuart {
      * @param items the list of stored tasks
      * @return a new, sorted list
      */
-    private static ArrayList<Task> sortedByDate(ArrayList<Task> items) {
+    private static List<Task> sortedByDate(List<Task> items) {
         ArrayList<Task> sorted = new ArrayList<>(items);
         sorted.sort(Stuart::compareByDate);
         return sorted;
@@ -321,7 +301,7 @@ public class Stuart {
      * @param date the date to filter by
      * @return one header line followed by one line per matching item
      */
-    private static String[] tasksOn(ArrayList<Task> items, LocalDate date) {
+    private static String[] tasksOn(List<Task> items, LocalDate date) {
         ArrayList<String> lines = new ArrayList<>();
         lines.add("Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":");
         for (int i = 0; i < items.size(); i++) {

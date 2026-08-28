@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -116,7 +117,7 @@ public class Storage {
      * @param items the list of stored tasks
      * @param ui where to report a save failure
      */
-    public void save(ArrayList<Task> items, Ui ui) {
+    public void save(List<Task> items, Ui ui) {
         File dataFile = new File(filePath);
         File parentDir = dataFile.getParentFile();
         if (parentDir != null) {
