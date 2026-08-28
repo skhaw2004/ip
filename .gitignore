@@ -20,4 +20,5 @@ _temp/
 /data/
 
 /text-ui-test/ACTUAL.TXT
+/text-ui-test/ACTUAL_LOAD.TXT
 text-ui-test/EXPECTED-UNIX.TXT

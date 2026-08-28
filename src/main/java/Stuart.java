@@ -46,10 +46,9 @@ public class Stuart {
     // Creating of STUART banner was assisted by Claude Code
     public static void main(String[] args) {
         printBanner();
-
         reply("Hello! I'm Stuart.", "What can I do for you?");
 
-        ArrayList<Task> items = new ArrayList<>();
+        ArrayList<Task> items = loadTasks();
 
         try (Scanner scanner = new Scanner(System.in)) {
             // Keep reading commands until the user says "bye", or the input runs out.
@@ -236,6 +235,43 @@ public class Stuart {
         saveTasks(items);
         reply("Got it. I've added this task:", "  " + task,
                 "Now you have " + items.size() + " tasks in the list.");
+    }
+
+    /**
+     * Loads the task list from the save file at {@link #DATA_FILE_PATH}.
+     * Returns an empty list if the file does not exist yet (e.g. first run).
+     *
+     * @return the loaded tasks, in the order they appear in the file
+     */
+    private static ArrayList<Task> loadTasks() {
+        ArrayList<Task> items = new ArrayList<>();
+        File dataFile = new File(DATA_FILE_PATH);
+        if (!dataFile.exists()) {
+            return items;
+        }
+        try (Scanner fileScanner = new Scanner(dataFile)) {
+            while (fileScanner.hasNextLine()) {
+                String[] parts = fileScanner.nextLine().split(" \\| ");
+                String type = parts[0];
+                boolean isDone = parts[1].equals("1");
+                String description = parts[2];
+                Task task;
+                if (type.equals("D")) {
+                    task = new Deadlines(description, parts[3]);
+                } else if (type.equals("E")) {
+                    task = new Events(description, parts[3], parts[4]);
+                } else {
+                    task = new ToDos(description);
+                }
+                if (isDone) {
+                    task.markAsDone();
+                }
+                items.add(task);
+            }
+        } catch (IOException e) {
+            reply("Warning: could not load saved tasks (" + e.getMessage() + ").");
+        }
+        return items;
     }
 
     /**

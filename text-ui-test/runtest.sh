@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-# Compiles Stuart and runs it (from the project root, so its "./data/..."
-# save path resolves correctly) against input.txt, diffing both the console
-# output (against EXPECTED.TXT) and the resulting save file at
-# ../data/stuart.txt (against EXPECTED_DATA.TXT). Run from anywhere; paths
-# are resolved relative to this script's location.
+# Compiles Stuart and runs two scenarios (both from the project root, so its
+# "./data/..." save path resolves correctly):
+#   1. input.txt against a clean slate, checking console output
+#      (EXPECTED.TXT) and the resulting save file (EXPECTED_DATA.TXT) -
+#      exercises writing.
+#   2. input_load.txt against a pre-seeded save file (seed_data.txt),
+#      checking console output (EXPECTED_LOAD.TXT) - exercises loading.
+# Run from anywhere; paths are resolved relative to this script's location.
 
 cd "$(dirname "$0")"
 
@@ -16,7 +19,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Start each run with no save file, so it doesn't carry over between runs.
+WRITE_CONSOLE_OK=0
+WRITE_DATA_OK=0
+LOAD_CONSOLE_OK=0
+
+# --- Scenario 1: writing, from a clean slate ---
 rm -rf data
 
 # Run from the project root, matching how a normal user (or IntelliJ) would
@@ -31,24 +38,38 @@ if command -v dos2unix >/dev/null 2>&1; then
     dos2unix ACTUAL.TXT EXPECTED-UNIX.TXT >/dev/null 2>&1
 fi
 
-CONSOLE_OK=0
-DATA_OK=0
-
 diff ACTUAL.TXT EXPECTED-UNIX.TXT
 if [ $? -eq 0 ]; then
-    CONSOLE_OK=1
+    WRITE_CONSOLE_OK=1
 else
     echo "********** Console output does not match EXPECTED.TXT **********"
 fi
 
 diff ../data/stuart.txt EXPECTED_DATA.TXT
 if [ $? -eq 0 ]; then
-    DATA_OK=1
+    WRITE_DATA_OK=1
 else
     echo "********** Saved data/stuart.txt does not match EXPECTED_DATA.TXT **********"
 fi
 
-if [ $CONSOLE_OK -eq 1 ] && [ $DATA_OK -eq 1 ]; then
+# --- Scenario 2: loading, from a pre-seeded save file ---
+cd ..
+rm -rf data
+mkdir -p data
+cp text-ui-test/seed_data.txt data/stuart.txt
+
+java -classpath out/production/ip Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD.TXT
+
+cd text-ui-test
+
+diff ACTUAL_LOAD.TXT EXPECTED_LOAD.TXT
+if [ $? -eq 0 ]; then
+    LOAD_CONSOLE_OK=1
+else
+    echo "********** Console output does not match EXPECTED_LOAD.TXT **********"
+fi
+
+if [ $WRITE_CONSOLE_OK -eq 1 ] && [ $WRITE_DATA_OK -eq 1 ] && [ $LOAD_CONSOLE_OK -eq 1 ]; then
     echo "Test passed!"
     exit 0
 else
