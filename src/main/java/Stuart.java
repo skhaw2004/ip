@@ -102,6 +102,7 @@ public class Stuart {
                             // empty description
                             throw new StuartException("The description of a todo cannot be empty.");
                         }
+                        checkNoSaveDelimiter(description);
                         addTask(items, new ToDos(description));
                     } else if (trimmedCommand.equals("deadline") || trimmedCommand.startsWith("deadline ")) {
                         // add a deadline
@@ -117,6 +118,11 @@ public class Stuart {
                             // empty description
                             throw new StuartException("The description of a deadline cannot be empty.");
                         }
+                        if (by.isEmpty()) {
+                            throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
+                        }
+                        checkNoSaveDelimiter(description);
+                        checkNoSaveDelimiter(by);
                         addTask(items, new Deadlines(description, by));
                     } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
                         // add an event
@@ -135,6 +141,12 @@ public class Stuart {
                             // empty description
                             throw new StuartException("The description of an event cannot be empty.");
                         }
+                        if (from.isEmpty() || to.isEmpty()) {
+                            throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
+                        }
+                        checkNoSaveDelimiter(description);
+                        checkNoSaveDelimiter(from);
+                        checkNoSaveDelimiter(to);
                         addTask(items, new Events(description, from, to));
                     } else {
                         // not any of the tasks
@@ -225,6 +237,21 @@ public class Stuart {
     }
 
     /**
+     * Rejects task text that contains the save-file field delimiter, since
+     * it would be misread as extra fields the next time the save file is
+     * loaded (e.g. a description of "milk | eggs" would split into two
+     * fields instead of one).
+     *
+     * @param text the description or date/time text to check
+     * @throws StuartException if {@code text} contains {@code " | "}
+     */
+    private static void checkNoSaveDelimiter(String text) throws StuartException {
+        if (text.contains(" | ")) {
+            throw new StuartException("Task details cannot contain \" | \".");
+        }
+    }
+
+    /**
      * Appends {@code task} to {@code items} and reports it.
      *
      * @param items the list of stored tasks
@@ -240,6 +267,9 @@ public class Stuart {
     /**
      * Loads the task list from the save file at {@link #DATA_FILE_PATH}.
      * Returns an empty list if the file does not exist yet (e.g. first run).
+     * A line that cannot be parsed is skipped with a warning rather than
+     * aborting the whole load, so one corrupted line doesn't cost every
+     * other saved task.
      *
      * @return the loaded tasks, in the order they appear in the file
      */
@@ -251,27 +281,59 @@ public class Stuart {
         }
         try (Scanner fileScanner = new Scanner(dataFile)) {
             while (fileScanner.hasNextLine()) {
-                String[] parts = fileScanner.nextLine().split(" \\| ");
-                String type = parts[0];
-                boolean isDone = parts[1].equals("1");
-                String description = parts[2];
-                Task task;
-                if (type.equals("D")) {
-                    task = new Deadlines(description, parts[3]);
-                } else if (type.equals("E")) {
-                    task = new Events(description, parts[3], parts[4]);
-                } else {
-                    task = new ToDos(description);
+                String line = fileScanner.nextLine().trim();
+                if (line.isEmpty()) {
+                    continue;
                 }
-                if (isDone) {
-                    task.markAsDone();
+                try {
+                    items.add(parseSavedTask(line));
+                } catch (StuartException e) {
+                    reply("Warning: skipping a corrupted saved task (" + e.getMessage() + ").");
                 }
-                items.add(task);
             }
         } catch (IOException e) {
             reply("Warning: could not load saved tasks (" + e.getMessage() + ").");
         }
         return items;
+    }
+
+    /**
+     * Parses one line of the save file into a {@link Task}.
+     *
+     * @param line one line from the save file, e.g. {@code "T | 1 | read book"}
+     * @return the task the line describes
+     * @throws StuartException if {@code line} is not validly formatted
+     */
+    private static Task parseSavedTask(String line) throws StuartException {
+        String[] parts = line.split(" \\| ");
+        if (parts.length < 3) {
+            throw new StuartException("expected at least 3 fields: \"" + line + "\"");
+        }
+        String type = parts[0].trim();
+        boolean isDone = parts[1].trim().equals("1");
+        String description = parts[2].trim();
+
+        Task task;
+        if (type.equals("T")) {
+            task = new ToDos(description);
+        } else if (type.equals("D")) {
+            if (parts.length < 4) {
+                throw new StuartException("deadline is missing its \"by\" field: \"" + line + "\"");
+            }
+            task = new Deadlines(description, parts[3].trim());
+        } else if (type.equals("E")) {
+            if (parts.length < 5) {
+                throw new StuartException("event is missing its \"from\"/\"to\" fields: \"" + line + "\"");
+            }
+            task = new Events(description, parts[3].trim(), parts[4].trim());
+        } else {
+            throw new StuartException("unknown task type \"" + type + "\": \"" + line + "\"");
+        }
+
+        if (isDone) {
+            task.markAsDone();
+        }
+        return task;
     }
 
     /**
@@ -283,7 +345,10 @@ public class Stuart {
      */
     private static void saveTasks(ArrayList<Task> items) {
         File dataFile = new File(DATA_FILE_PATH);
-        dataFile.getParentFile().mkdirs();
+        File parentDir = dataFile.getParentFile();
+        if (parentDir != null) {
+            parentDir.mkdirs();
+        }
         try (FileWriter writer = new FileWriter(dataFile)) {
             for (Task task : items) {
                 writer.write(task.toSaveFormat() + System.lineSeparator());

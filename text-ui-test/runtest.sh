@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-# Compiles Stuart and runs two scenarios (both from the project root, so its
-# "./data/..." save path resolves correctly):
+# Compiles Stuart and runs three scenarios (all from the project root, so
+# its "./data/..." save path resolves correctly):
 #   1. input.txt against a clean slate, checking console output
 #      (EXPECTED.TXT) and the resulting save file (EXPECTED_DATA.TXT) -
-#      exercises writing.
-#   2. input_load.txt against a pre-seeded save file (seed_data.txt),
-#      checking console output (EXPECTED_LOAD.TXT) - exercises loading.
+#      exercises writing, including several invalid-input edge cases.
+#   2. input_load.txt against a pre-seeded, well-formed save file
+#      (seed_data.txt), checking console output (EXPECTED_LOAD.TXT) -
+#      exercises loading.
+#   3. input_load.txt against a pre-seeded save file with corrupted lines
+#      mixed in (seed_data_corrupted.txt), checking console output
+#      (EXPECTED_LOAD_CORRUPTED.TXT) - exercises loading resilience.
 # Run from anywhere; paths are resolved relative to this script's location.
 
 cd "$(dirname "$0")"
@@ -22,6 +26,7 @@ fi
 WRITE_CONSOLE_OK=0
 WRITE_DATA_OK=0
 LOAD_CONSOLE_OK=0
+LOAD_CORRUPTED_OK=0
 
 # --- Scenario 1: writing, from a clean slate ---
 rm -rf data
@@ -52,7 +57,7 @@ else
     echo "********** Saved data/stuart.txt does not match EXPECTED_DATA.TXT **********"
 fi
 
-# --- Scenario 2: loading, from a pre-seeded save file ---
+# --- Scenario 2: loading, from a pre-seeded, well-formed save file ---
 cd ..
 rm -rf data
 mkdir -p data
@@ -69,7 +74,24 @@ else
     echo "********** Console output does not match EXPECTED_LOAD.TXT **********"
 fi
 
-if [ $WRITE_CONSOLE_OK -eq 1 ] && [ $WRITE_DATA_OK -eq 1 ] && [ $LOAD_CONSOLE_OK -eq 1 ]; then
+# --- Scenario 3: loading, from a save file with corrupted lines mixed in ---
+cd ..
+rm -rf data
+mkdir -p data
+cp text-ui-test/seed_data_corrupted.txt data/stuart.txt
+
+java -classpath out/production/ip Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD_CORRUPTED.TXT
+
+cd text-ui-test
+
+diff ACTUAL_LOAD_CORRUPTED.TXT EXPECTED_LOAD_CORRUPTED.TXT
+if [ $? -eq 0 ]; then
+    LOAD_CORRUPTED_OK=1
+else
+    echo "********** Console output does not match EXPECTED_LOAD_CORRUPTED.TXT **********"
+fi
+
+if [ $WRITE_CONSOLE_OK -eq 1 ] && [ $WRITE_DATA_OK -eq 1 ] && [ $LOAD_CONSOLE_OK -eq 1 ] && [ $LOAD_CORRUPTED_OK -eq 1 ]; then
     echo "Test passed!"
     exit 0
 else

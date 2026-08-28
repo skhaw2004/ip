@@ -21,4 +21,5 @@ _temp/
 
 /text-ui-test/ACTUAL.TXT
 /text-ui-test/ACTUAL_LOAD.TXT
+/text-ui-test/ACTUAL_LOAD_CORRUPTED.TXT
 text-ui-test/EXPECTED-UNIX.TXT
