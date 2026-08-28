@@ -9,6 +9,22 @@ import java.time.format.DateTimeParseException;
  */
 public class Parser {
     /**
+     * The kind of command a line of user input represents.
+     */
+    public enum CommandType {
+        BYE, LIST, SORTED, ON, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT, UNKNOWN
+    }
+
+    /**
+     * A command's type, together with whatever text followed its keyword
+     * (empty for a keyword-only command like {@code list}). {@code Stuart}
+     * dispatches on {@link #type} and hands {@link #arguments} to whichever
+     * {@code Parser} method that command needs next.
+     */
+    public record ParsedCommand(CommandType type, String arguments) {
+    }
+
+    /**
      * The description and due date parsed from the text after a
      * {@code deadline} command.
      */
@@ -20,6 +36,43 @@ public class Parser {
      * {@code event} command.
      */
     public record EventFields(String description, String from, String to) {
+    }
+
+    /**
+     * Identifies which command a trimmed line of user input is, and
+     * separates out whatever text followed its keyword. Recognizes only the
+     * keyword itself here; it's up to whichever {@code Parser} method the
+     * caller uses next (e.g. {@link #parseIndex}, {@link #parseDeadlineFields})
+     * to make sense of the remaining text, and up to the caller to validate
+     * its content (e.g. that it isn't empty).
+     *
+     * @param trimmedCommand the user's input, already trimmed
+     * @return the recognized command type and its argument text
+     */
+    public static ParsedCommand parseCommand(String trimmedCommand) {
+        if (trimmedCommand.equals("bye")) {
+            return new ParsedCommand(CommandType.BYE, "");
+        } else if (trimmedCommand.equals("list")) {
+            return new ParsedCommand(CommandType.LIST, "");
+        } else if (trimmedCommand.equals("sorted")) {
+            return new ParsedCommand(CommandType.SORTED, "");
+        } else if (trimmedCommand.equals("on") || trimmedCommand.startsWith("on ")) {
+            return new ParsedCommand(CommandType.ON, trimmedCommand.substring("on".length()).trim());
+        } else if (trimmedCommand.startsWith("mark ")) {
+            return new ParsedCommand(CommandType.MARK, trimmedCommand.substring("mark ".length()));
+        } else if (trimmedCommand.startsWith("unmark ")) {
+            return new ParsedCommand(CommandType.UNMARK, trimmedCommand.substring("unmark ".length()));
+        } else if (trimmedCommand.startsWith("delete ")) {
+            return new ParsedCommand(CommandType.DELETE, trimmedCommand.substring("delete ".length()));
+        } else if (trimmedCommand.equals("todo") || trimmedCommand.startsWith("todo ")) {
+            return new ParsedCommand(CommandType.TODO, trimmedCommand.substring("todo".length()).trim());
+        } else if (trimmedCommand.equals("deadline") || trimmedCommand.startsWith("deadline ")) {
+            return new ParsedCommand(CommandType.DEADLINE, trimmedCommand.substring("deadline".length()).trim());
+        } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
+            return new ParsedCommand(CommandType.EVENT, trimmedCommand.substring("event".length()).trim());
+        } else {
+            return new ParsedCommand(CommandType.UNKNOWN, trimmedCommand);
+        }
     }
 
     /**
