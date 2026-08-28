@@ -43,4 +43,13 @@ public class Task {
     public String toString() {
         return "[" + type.getTag() + "][" + this.getStatusIcon() + "] " + this.description;
     }
+
+    /**
+     * Returns this task formatted for the save file, e.g. {@code "T | 1 | read book"}.
+     *
+     * @return the save-file line for this task, without a trailing newline
+     */
+    public String toSaveFormat() {
+        return type.getTag() + " | " + (isDone ? "1" : "0") + " | " + description;
+    }
 }

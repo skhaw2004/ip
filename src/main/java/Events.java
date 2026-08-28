@@ -17,4 +17,9 @@ public class Events extends Task {
     public String toString() {
         return super.toString() + " (from: " + from + " to: " + to + ")";
     }
+
+    @Override
+    public String toSaveFormat() {
+        return super.toSaveFormat() + " | " + from + " | " + to;
+    }
 }

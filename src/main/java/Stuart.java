@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -16,14 +19,33 @@ public class Stuart {
     /** Indentation applied to every line of text Stuart prints. */
     private static final String TEXT_INDENT = "     ";
 
+    /** ANSI code that makes following text bold and cyan. */
+    private static final String BANNER_COLOR = "[1;36m";
+
+    /** ANSI code that resets text formatting back to the terminal default. */
+    private static final String ANSI_RESET = "[0m";
+
+    /** Filled block-letter "STUART" banner, one row per element. */
+    private static final String[] BANNER_LINES = {
+        "█████ █████ █   █  ███  ████  █████",
+        "█       █   █   █ █   █ █   █   █  ",
+        "█████   █   █   █ █████ ████    █  ",
+        "    █   █   █   █ █   █ █  █    █  ",
+        "█████   █   █████ █   █ █   █   █  ",
+    };
+
+    /** How many colour steps the banner animation cycles through. */
+    private static final int BANNER_ANIMATION_FRAMES = 60;
+
+    /** Milliseconds between each colour step of the banner animation. */
+    private static final int BANNER_FRAME_DELAY_MS = 40;
+
+    /** Path to the file tasks are saved to, relative to the project root. */
+    private static final String DATA_FILE_PATH = "./data/stuart.txt";
+
     // Creating of STUART banner was assisted by Claude Code
     public static void main(String[] args) {
-        String banner = " ____   _                       _   \n"
-                + "/ ___| | |_  _   _   __ _  _ __ | |_ \n"
-                + "\\___ \\ | __|| | | | / _` || '__|| __|\n"
-                + " ___) || |_ | |_| || (_| || |   | |_ \n"
-                + "|____/  \\__| \\__,_| \\__,_||_|    \\__|\n";
-        System.out.print(banner);
+        printBanner();
 
         reply("Hello! I'm Stuart.", "What can I do for you?");
 
@@ -45,6 +67,7 @@ public class Stuart {
                         int index = parseIndex(trimmedCommand.substring("mark ".length()));
                         if (isValidIndex(index, items.size())) {
                             items.get(index).markAsDone();
+                            saveTasks(items);
                             reply("Nice! I've marked this task as done:",
                                     "  " + items.get(index));
                         } else {
@@ -55,6 +78,7 @@ public class Stuart {
                         int index = parseIndex(trimmedCommand.substring("unmark ".length()));
                         if (isValidIndex(index, items.size())) {
                             items.get(index).markAsNotDone();
+                            saveTasks(items);
                             reply("OK, I've marked this task as not done yet:",
                                     "  " + items.get(index));
                         } else {
@@ -65,6 +89,7 @@ public class Stuart {
                         int index = parseIndex(trimmedCommand.substring("delete ".length()));
                         if (isValidIndex(index, items.size())) {
                             Task removedTask = items.remove(index);
+                            saveTasks(items);
                             reply("Noted. I've removed this task:",
                                     "  " + removedTask,
                                     "Now you have " + items.size() + " tasks in the list.");
@@ -126,6 +151,55 @@ public class Stuart {
     }
 
     /**
+     * Prints the STUART banner. Animates it through the RGB spectrum when
+     * connected to a real interactive terminal; otherwise (e.g. piped input,
+     * many IDE run consoles) prints one static coloured frame, so that
+     * automated tests get deterministic output.
+     */
+    private static void printBanner() {
+        if (System.console() != null) {
+            animateBanner();
+        } else {
+            printBannerFrame(BANNER_COLOR);
+        }
+    }
+
+    /**
+     * Prints the banner once, cycling its colour through the RGB spectrum
+     * over {@link #BANNER_ANIMATION_FRAMES} steps, redrawing in place.
+     */
+    private static void animateBanner() {
+        for (int frame = 0; frame < BANNER_ANIMATION_FRAMES; frame++) {
+            double angle = 2 * Math.PI * frame / BANNER_ANIMATION_FRAMES;
+            int red = (int) (Math.sin(angle) * 127 + 128);
+            int green = (int) (Math.sin(angle + 2 * Math.PI / 3) * 127 + 128);
+            int blue = (int) (Math.sin(angle + 4 * Math.PI / 3) * 127 + 128);
+            printBannerFrame("[1;38;2;" + red + ";" + green + ";" + blue + "m");
+            try {
+                Thread.sleep(BANNER_FRAME_DELAY_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            if (frame < BANNER_ANIMATION_FRAMES - 1) {
+                // Move the cursor back to the top-left of the banner to redraw over it.
+                System.out.print("[" + BANNER_LINES.length + "F");
+            }
+        }
+    }
+
+    /**
+     * Prints one frame of the banner in the given ANSI colour code.
+     *
+     * @param ansiColor the ANSI escape code to colour the banner with
+     */
+    private static void printBannerFrame(String ansiColor) {
+        for (String line : BANNER_LINES) {
+            System.out.println(ansiColor + line + ANSI_RESET);
+        }
+    }
+
+    /**
      * Parses the task number following a {@code mark}/{@code unmark} command
      * into a 0-based array index.
      *
@@ -159,8 +233,28 @@ public class Stuart {
      */
     private static void addTask(ArrayList<Task> items, Task task) {
         items.add(task);
+        saveTasks(items);
         reply("Got it. I've added this task:", "  " + task,
                 "Now you have " + items.size() + " tasks in the list.");
+    }
+
+    /**
+     * Overwrites the save file at {@link #DATA_FILE_PATH} with the current
+     * task list, creating the containing directory if needed. If the write
+     * fails, reports it but leaves the in-memory task list untouched.
+     *
+     * @param items the list of stored tasks
+     */
+    private static void saveTasks(ArrayList<Task> items) {
+        File dataFile = new File(DATA_FILE_PATH);
+        dataFile.getParentFile().mkdirs();
+        try (FileWriter writer = new FileWriter(dataFile)) {
+            for (Task task : items) {
+                writer.write(task.toSaveFormat() + System.lineSeparator());
+            }
+        } catch (IOException e) {
+            reply("Warning: could not save tasks to disk (" + e.getMessage() + ").");
+        }
     }
 
     /**
