@@ -1,5 +1,4 @@
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,25 +56,25 @@ public class Stuart {
                     if (dateText.isEmpty()) {
                         throw new StuartException("Please specify a date, e.g. \"on 2019-10-15\".");
                     }
-                    LocalDate date = parseDate(dateText);
+                    LocalDate date = Parser.parseDate(dateText);
                     ui.reply(tasksOn(tasks.getAll(), date));
                 } else if (trimmedCommand.startsWith("mark ")) {
                     // mark a task
-                    int index = parseIndex(trimmedCommand.substring("mark ".length()));
+                    int index = Parser.parseIndex(trimmedCommand.substring("mark ".length()));
                     Task task = tasks.get(index);
                     task.markAsDone();
                     storage.save(tasks.getAll(), ui);
                     ui.reply("Nice! I've marked this task as done:", "  " + withOverdueFlag(task));
                 } else if (trimmedCommand.startsWith("unmark ")) {
                     // unmark a task
-                    int index = parseIndex(trimmedCommand.substring("unmark ".length()));
+                    int index = Parser.parseIndex(trimmedCommand.substring("unmark ".length()));
                     Task task = tasks.get(index);
                     task.markAsNotDone();
                     storage.save(tasks.getAll(), ui);
                     ui.reply("OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task));
                 } else if (trimmedCommand.startsWith("delete ")) {
                     // delete a task
-                    int index = parseIndex(trimmedCommand.substring("delete ".length()));
+                    int index = Parser.parseIndex(trimmedCommand.substring("delete ".length()));
                     Task removedTask = tasks.delete(index);
                     storage.save(tasks.getAll(), ui);
                     ui.reply("Noted. I've removed this task:",
@@ -88,52 +87,37 @@ public class Stuart {
                         // empty description
                         throw new StuartException("The description of a todo cannot be empty.");
                     }
-                    checkNoSaveDelimiter(description);
+                    Parser.checkNoSaveDelimiter(description);
                     addTask(new ToDos(description));
                 } else if (trimmedCommand.equals("deadline") || trimmedCommand.startsWith("deadline ")) {
                     // add a deadline
                     String rest = trimmedCommand.substring("deadline".length()).trim();
-                    int byIndex = rest.indexOf("/by");
-                    if (byIndex == -1) {
-                        throw new StuartException("A deadline needs a description and \"/by <yyyy-MM-dd>\", \n"
-                                + Ui.TEXT_INDENT + "e.g. deadline return book /by 2019-10-15");
-                    }
-                    String description = rest.substring(0, byIndex).trim();
-                    String by = rest.substring(byIndex + "/by".length()).trim();
-                    if (description.isEmpty()) {
+                    Parser.DeadlineFields fields = Parser.parseDeadlineFields(rest);
+                    if (fields.description().isEmpty()) {
                         // empty description
                         throw new StuartException("The description of a deadline cannot be empty.");
                     }
-                    if (by.isEmpty()) {
+                    if (fields.by().isEmpty()) {
                         throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
                     }
-                    checkNoSaveDelimiter(description);
-                    LocalDate byDate = parseDate(by);
-                    addTask(new Deadlines(description, byDate));
+                    Parser.checkNoSaveDelimiter(fields.description());
+                    LocalDate byDate = Parser.parseDate(fields.by());
+                    addTask(new Deadlines(fields.description(), byDate));
                 } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
                     // add an event
                     String rest = trimmedCommand.substring("event".length()).trim();
-                    int fromIndex = rest.indexOf("/from");
-                    int toIndex = rest.indexOf("/to");
-                    if (fromIndex == -1 || toIndex == -1 || toIndex < fromIndex) {
-                        throw new StuartException(
-                                "An event needs a description, \"/from <yyyy-MM-dd>\", and \"/to <yyyy-MM-dd>\", \n"
-                                + Ui.TEXT_INDENT + "e.g. event meeting /from 2019-10-15 /to 2019-10-16");
-                    }
-                    String description = rest.substring(0, fromIndex).trim();
-                    String from = rest.substring(fromIndex + "/from".length(), toIndex).trim();
-                    String to = rest.substring(toIndex + "/to".length()).trim();
-                    if (description.isEmpty()) {
+                    Parser.EventFields fields = Parser.parseEventFields(rest);
+                    if (fields.description().isEmpty()) {
                         // empty description
                         throw new StuartException("The description of an event cannot be empty.");
                     }
-                    if (from.isEmpty() || to.isEmpty()) {
+                    if (fields.from().isEmpty() || fields.to().isEmpty()) {
                         throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
                     }
-                    checkNoSaveDelimiter(description);
-                    LocalDate fromDate = parseDate(from);
-                    LocalDate toDate = parseDate(to);
-                    addTask(new Events(description, fromDate, toDate));
+                    Parser.checkNoSaveDelimiter(fields.description());
+                    LocalDate fromDate = Parser.parseDate(fields.from());
+                    LocalDate toDate = Parser.parseDate(fields.to());
+                    addTask(new Events(fields.description(), fromDate, toDate));
                 } else {
                     // not any of the tasks
                     throw new StuartException("To add a task, use the following format:\n" + Ui.TEXT_INDENT + "<task type> <task description>");
@@ -149,54 +133,6 @@ public class Stuart {
 
     public static void main(String[] args) {
         new Stuart(DATA_FILE_PATH).run();
-    }
-
-    /**
-     * Parses the task number following a {@code mark}/{@code unmark}/
-     * {@code delete} command into a 0-based index. An invalid number (not
-     * parseable, or out of range) surfaces as a {@link StuartException} the
-     * first time it's used to access {@link #tasks}, not here.
-     *
-     * @param indexText the text after the command word, expected to be a 1-based number
-     * @return the 0-based index, or -1 if {@code indexText} is not a valid number
-     */
-    private static int parseIndex(String indexText) {
-        try {
-            return Integer.parseInt(indexText.trim()) - 1;
-        } catch (NumberFormatException e) {
-            return -1;
-        }
-    }
-
-    /**
-     * Rejects task text that contains the save-file field delimiter, since
-     * it would be misread as extra fields the next time the save file is
-     * loaded (e.g. a description of "milk | eggs" would split into two
-     * fields instead of one).
-     *
-     * @param text the description or date/time text to check
-     * @throws StuartException if {@code text} contains {@code " | "}
-     */
-    private static void checkNoSaveDelimiter(String text) throws StuartException {
-        if (text.contains(" | ")) {
-            throw new StuartException("Task details cannot contain \" | \".");
-        }
-    }
-
-    /**
-     * Parses a date in {@code yyyy-MM-dd} format, e.g. {@code "2019-10-15"}.
-     *
-     * @param text the date text to parse
-     * @return the parsed date
-     * @throws StuartException if {@code text} is not a valid {@code yyyy-MM-dd} date
-     */
-    private static LocalDate parseDate(String text) throws StuartException {
-        try {
-            return LocalDate.parse(text);
-        } catch (DateTimeParseException e) {
-            throw new StuartException(
-                    "\"" + text + "\" is not a valid date. Please use yyyy-MM-dd, e.g. 2019-10-15.");
-        }
     }
 
     /**
