@@ -1,3 +1,5 @@
+package stuart.task;
+
 /**
  * Represents a task with no date/time attached to it.
  */

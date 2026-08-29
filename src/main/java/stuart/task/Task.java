@@ -1,10 +1,12 @@
+package stuart.task;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 public class Task {
     /** Formatter used to display deadline/event dates, e.g. "Oct 15 2019". */
-    protected static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy");
+    public static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy");
 
     protected String description;
     protected boolean isDone;
