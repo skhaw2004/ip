@@ -1,8 +1,10 @@
-package stuart;
+package stuart.task;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import stuart.exception.StuartException;
 
 /**
  * Contains the list of tasks, with operations to add, delete, and access

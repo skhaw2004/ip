@@ -1,4 +1,4 @@
-package stuart;
+package stuart.ui;
 
 import java.util.Scanner;
 

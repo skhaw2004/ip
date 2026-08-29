@@ -1,4 +1,4 @@
-package stuart;
+package stuart.task;
 
 /**
  * The kind of a {@link Task}, and the single-letter tag used to display it,

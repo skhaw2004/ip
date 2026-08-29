@@ -1,4 +1,4 @@
-package stuart;
+package stuart.exception;
 
 /**
  * Represents an error specific to the Stuart chatbot, e.g. an invalid or

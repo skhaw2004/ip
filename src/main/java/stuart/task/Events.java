@@ -1,4 +1,4 @@
-package stuart;
+package stuart.task;
 
 import java.time.LocalDate;
 import java.util.Optional;

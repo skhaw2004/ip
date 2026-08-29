@@ -1,7 +1,10 @@
-package stuart;
+package stuart.parser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+
+import stuart.exception.StuartException;
+import stuart.ui.Ui;
 
 /**
  * Makes sense of the user's raw command text: parsing task numbers, dates,

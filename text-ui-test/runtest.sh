@@ -17,7 +17,7 @@ cd "$(dirname "$0")"
 
 cd ..
 mkdir -p out/production/ip
-javac -d out/production/ip src/main/java/stuart/*.java
+javac -d out/production/ip $(find src/main/java -name "*.java")
 if [ $? -ne 0 ]; then
     echo "********** BUILD FAILURE **********"
     exit 1
