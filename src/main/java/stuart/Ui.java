@@ -1,3 +1,5 @@
+package stuart;
+
 import java.util.Scanner;
 
 /**

@@ -1,3 +1,5 @@
+package stuart;
+
 /**
  * Represents an error specific to the Stuart chatbot, e.g. an invalid or
  * incomplete command entered by the user.

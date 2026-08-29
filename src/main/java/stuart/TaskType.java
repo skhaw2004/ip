@@ -1,3 +1,5 @@
+package stuart;
+
 /**
  * The kind of a {@link Task}, and the single-letter tag used to display it,
  * e.g. {@code T} for a to-do.

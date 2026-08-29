@@ -17,7 +17,7 @@ cd "$(dirname "$0")"
 
 cd ..
 mkdir -p out/production/ip
-javac -d out/production/ip src/main/java/*.java
+javac -d out/production/ip src/main/java/stuart/*.java
 if [ $? -ne 0 ]; then
     echo "********** BUILD FAILURE **********"
     exit 1
@@ -33,7 +33,7 @@ rm -rf data
 
 # Run from the project root, matching how a normal user (or IntelliJ) would
 # launch Stuart, so its hard-coded "./data/stuart.txt" path resolves here.
-java -classpath out/production/ip Stuart < text-ui-test/input.txt > text-ui-test/ACTUAL.TXT
+java -classpath out/production/ip stuart.Stuart < text-ui-test/input.txt > text-ui-test/ACTUAL.TXT
 
 cd text-ui-test
 
@@ -63,7 +63,7 @@ rm -rf data
 mkdir -p data
 cp text-ui-test/seed_data.txt data/stuart.txt
 
-java -classpath out/production/ip Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD.TXT
+java -classpath out/production/ip stuart.Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD.TXT
 
 cd text-ui-test
 
@@ -80,7 +80,7 @@ rm -rf data
 mkdir -p data
 cp text-ui-test/seed_data_corrupted.txt data/stuart.txt
 
-java -classpath out/production/ip Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD_CORRUPTED.TXT
+java -classpath out/production/ip stuart.Stuart < text-ui-test/input_load.txt > text-ui-test/ACTUAL_LOAD_CORRUPTED.TXT
 
 cd text-ui-test
 
