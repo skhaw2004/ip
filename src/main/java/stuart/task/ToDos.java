@@ -6,6 +6,11 @@ package stuart.task;
 // ToDos class built by Claude Code, verified by myself
 public class ToDos extends Task {
 
+    /**
+     * Creates a new to-do task.
+     *
+     * @param description what the to-do is
+     */
     public ToDos(String description) {
         super(description, TaskType.TODO);
     }

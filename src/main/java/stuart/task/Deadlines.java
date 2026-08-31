@@ -10,6 +10,12 @@ import java.util.Optional;
 public class Deadlines extends Task {
     private final LocalDate by;
 
+    /**
+     * Creates a new deadline task.
+     *
+     * @param description what the deadline is
+     * @param by the date the task is due
+     */
     public Deadlines(String description, LocalDate by) {
         super(description, TaskType.DEADLINE);
         this.by = by;

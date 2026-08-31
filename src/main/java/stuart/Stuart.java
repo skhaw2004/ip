@@ -28,6 +28,11 @@ public class Stuart {
     private final Storage storage;
     private TaskList tasks;
 
+    /**
+     * Creates a new Stuart chatbot that saves/loads its tasks at {@code filePath}.
+     *
+     * @param filePath the path to the save file, e.g. {@code "./data/stuart.txt"}
+     */
     public Stuart(String filePath) {
         this.ui = new Ui();
         this.storage = new Storage(filePath);
@@ -154,6 +159,11 @@ public class Stuart {
         ui.close();
     }
 
+    /**
+     * Launches the Stuart chatbot, saving/loading tasks at {@link #DATA_FILE_PATH}.
+     *
+     * @param args unused
+     */
     public static void main(String[] args) {
         new Stuart(DATA_FILE_PATH).run();
     }

@@ -12,6 +12,13 @@ public class Events extends Task {
     private final LocalDate from;
     private final LocalDate to;
 
+    /**
+     * Creates a new event task.
+     *
+     * @param description what the event is
+     * @param from the date the event starts
+     * @param to the date the event ends
+     */
     public Events(String description, LocalDate from, LocalDate to) {
         super(description, TaskType.EVENT);
         this.from = from;
