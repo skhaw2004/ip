@@ -73,6 +73,12 @@ public class Stuart {
                     LocalDate date = Parser.parseDate(parsed.arguments());
                     ui.reply(tasksOn(tasks.getAll(), date));
                     break;
+                case FIND:
+                    // list tasks that contains keyword in its description
+                    if (parsed.arguments().isEmpty()) {
+                        throw new Stuart("Please specify the keyword you want to find tasks with, e.g find shopping")
+                    }
+
                 case MARK: {
                     // mark a task
                     int index = Parser.parseIndex(parsed.arguments());
@@ -265,6 +271,17 @@ public class Stuart {
         lines.add("Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":");
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i).occursOn(date)) {
+                lines.add(formatNumberedTask(i + 1, items.get(i)));
+            }
+        }
+        return lines.toArray(new String[0]);
+    }
+
+    private static String[] tasksFind(List<Task> items, String keyword) {
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add("Here are the tasks with keyword: " + keyword + ":");
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).containsKeyword(keyword)) {
                 lines.add(formatNumberedTask(i + 1, items.get(i)));
             }
         }
