@@ -76,9 +76,11 @@ public class Stuart {
                 case FIND:
                     // list tasks that contains keyword in its description
                     if (parsed.arguments().isEmpty()) {
-                        throw new Stuart("Please specify the keyword you want to find tasks with, e.g find shopping")
+                        throw new StuartException("Please specify the keyword you want to find tasks with, e.g find shopping");
                     }
-
+                    String keyword = parsed.arguments();
+                    ui.reply(tasksFind(tasks.getAll(), keyword));
+                    break;
                 case MARK: {
                     // mark a task
                     int index = Parser.parseIndex(parsed.arguments());
