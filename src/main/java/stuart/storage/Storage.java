@@ -22,6 +22,11 @@ import stuart.ui.Ui;
 public class Storage {
     private final String filePath;
 
+    /**
+     * Creates a new {@code Storage} that reads/writes the save file at {@code filePath}.
+     *
+     * @param filePath the path to the save file
+     */
     public Storage(String filePath) {
         this.filePath = filePath;
     }

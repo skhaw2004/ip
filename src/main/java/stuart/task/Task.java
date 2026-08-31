@@ -4,14 +4,29 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+/**
+ * Represents a single task tracked by Stuart: a description, a done/not-done
+ * status, and a {@link TaskType}. Subclasses ({@link ToDos}, {@link Deadlines},
+ * {@link Events}) add whatever date fields their kind of task needs, and
+ * override the methods whose behaviour depends on those dates.
+ */
 public class Task {
     /** Formatter used to display deadline/event dates, e.g. "Oct 15 2019". */
     public static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy");
 
+    /** What the task is. */
     protected String description;
+    /** Whether the task has been marked done. */
     protected boolean isDone;
+    /** The kind of task this is. */
     protected TaskType type;
 
+    /**
+     * Creates a new, not-done task.
+     *
+     * @param description what the task is
+     * @param type the kind of task this is
+     */
     public Task(String description, TaskType type) {
         this.description = description;
         this.isDone = false;

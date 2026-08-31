@@ -13,11 +13,35 @@ import stuart.ui.Ui;
  * what to do about it.
  */
 public class Parser {
+    private Parser() {
+    }
+
     /**
      * The kind of command a line of user input represents.
      */
     public enum CommandType {
-        BYE, LIST, SORTED, ON, MARK, UNMARK, DELETE, TODO, DEADLINE, EVENT, UNKNOWN
+        /** Exit the chatbot. */
+        BYE,
+        /** List all tasks. */
+        LIST,
+        /** List all tasks, sorted by date with dateless tasks last. */
+        SORTED,
+        /** List the tasks occurring on a specific date. */
+        ON,
+        /** Mark a task as done. */
+        MARK,
+        /** Mark a task as not done. */
+        UNMARK,
+        /** Delete a task. */
+        DELETE,
+        /** Add a to-do task. */
+        TODO,
+        /** Add a deadline task. */
+        DEADLINE,
+        /** Add an event task. */
+        EVENT,
+        /** Input that doesn't match any recognized command keyword. */
+        UNKNOWN
     }
 
     /**
@@ -25,6 +49,9 @@ public class Parser {
      * (empty for a keyword-only command like {@code list}). {@code Stuart}
      * dispatches on {@link #type} and hands {@link #arguments} to whichever
      * {@code Parser} method that command needs next.
+     *
+     * @param type the recognized command type
+     * @param arguments the text following the command keyword, not yet interpreted
      */
     public record ParsedCommand(CommandType type, String arguments) {
     }
@@ -32,6 +59,9 @@ public class Parser {
     /**
      * The description and due date parsed from the text after a
      * {@code deadline} command.
+     *
+     * @param description what the deadline is
+     * @param by the due date text, as typed by the user
      */
     public record DeadlineFields(String description, String by) {
     }
@@ -39,6 +69,10 @@ public class Parser {
     /**
      * The description, start, and end times parsed from the text after an
      * {@code event} command.
+     *
+     * @param description what the event is
+     * @param from the start date text, as typed by the user
+     * @param to the end date text, as typed by the user
      */
     public record EventFields(String description, String from, String to) {
     }
