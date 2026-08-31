@@ -29,9 +29,9 @@ public class Parser {
         /** List the tasks occurring on a specific date. */
         ON,
         /** Mark a task as done. */
-        FIND,
-        /** Find tasks with a keyword. */
         MARK,
+        /** Find tasks with a keyword. */
+        FIND,
         /** Mark a task as not done. */
         UNMARK,
         /** Delete a task. */
