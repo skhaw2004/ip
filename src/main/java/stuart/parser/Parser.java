@@ -29,6 +29,8 @@ public class Parser {
         /** List the tasks occurring on a specific date. */
         ON,
         /** Mark a task as done. */
+        FIND,
+        /** Find tasks with a keyword. */
         MARK,
         /** Mark a task as not done. */
         UNMARK,
@@ -109,6 +111,8 @@ public class Parser {
             return new ParsedCommand(CommandType.DEADLINE, trimmedCommand.substring("deadline".length()).trim());
         } else if (trimmedCommand.equals("event") || trimmedCommand.startsWith("event ")) {
             return new ParsedCommand(CommandType.EVENT, trimmedCommand.substring("event".length()).trim());
+        } else if (trimmedCommand.equals("find") || trimmedCommand.startsWith("find ")) {
+            return new ParsedCommand(CommandType.FIND, trimmedCommand.substring("find".length()).trim());
         } else {
             return new ParsedCommand(CommandType.UNKNOWN, trimmedCommand);
         }

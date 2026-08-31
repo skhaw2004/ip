@@ -107,4 +107,15 @@ public class Task {
     public boolean isOverdue() {
         return false;
     }
+
+    /**
+     * Checks whether this task contains the keyword inputted.
+     * Works for all instances of Task as only requires the task description
+     *
+     * @param keyword the string to filter by
+     * @return true if this task contains the keyword
+     */
+    public boolean containsKeyword(String keyword) {
+        return this.description.contains(keyword);
+    }
 }
