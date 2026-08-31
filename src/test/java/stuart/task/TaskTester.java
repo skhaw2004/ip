@@ -53,4 +53,34 @@ public class TaskTester {
         task.markAsDone();
         assertEquals("T | 1 | eat malatang", task.toSaveFormat());
     }
+
+    @Test
+    public void containsKeyword_descriptionContainsKeyword_returnsTrue() {
+        ToDos task = new ToDos("eat malatang");
+        assertTrue(task.containsKeyword("malatang"));
+    }
+
+    @Test
+    public void containsKeyword_descriptionDoesNotContainKeyword_returnsFalse() {
+        ToDos task = new ToDos("eat malatang");
+        assertFalse(task.containsKeyword("sushi"));
+    }
+
+    @Test
+    public void containsKeyword_exactMatch_returnsTrue() {
+        ToDos task = new ToDos("eat malatang");
+        assertTrue(task.containsKeyword("eat malatang"));
+    }
+
+    @Test
+    public void containsKeyword_caseSensitiveMismatch_returnsFalse() {
+        ToDos task = new ToDos("eat malatang");
+        assertFalse(task.containsKeyword("Malatang"));
+    }
+
+    @Test
+    public void containsKeyword_emptyKeyword_returnsTrue() {
+        ToDos task = new ToDos("eat malatang");
+        assertTrue(task.containsKeyword(""));
+    }
 }
