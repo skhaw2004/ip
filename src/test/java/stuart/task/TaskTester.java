@@ -2,7 +2,7 @@ package stuart.task;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TaskTester {
 
@@ -10,7 +10,6 @@ public class TaskTester {
     public void getStatusIcon_newTask_returnsSpace() {
         ToDos task = new ToDos("eat malatang");
         assertEquals(" ", task.getStatusIcon());
-
     }
 
     @Test
