@@ -148,7 +148,8 @@ public class Stuart {
                 }
                 default:
                     // not any recognized command
-                    throw new StuartException("To add a task, use the following format:\n" + Ui.TEXT_INDENT + "<task type> <task description>");
+                    throw new StuartException("To add a task, use the following format:\n"
+                            + Ui.TEXT_INDENT + "<task type> <task description>");
                 }
             } catch (StuartException e) {
                 ui.reply(e.getMessage());

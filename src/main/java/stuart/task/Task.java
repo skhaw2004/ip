@@ -53,9 +53,8 @@ public class Task {
      * @return the status icon
      */
     public String getStatusIcon() {
-        return (this.isDone? "X" : " "); // mark done task with X
+        return this.isDone ? "X" : " ";
     }
-
 
     /**
      * Returns this task formatted as "[T][X] description" or "[T][ ] description",
