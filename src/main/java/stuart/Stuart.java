@@ -277,6 +277,14 @@ public class Stuart {
         return lines.toArray(new String[0]);
     }
 
+    /**
+     * Builds the numbered listing lines for the tasks containing
+     * keyword in its description
+     *
+     * @param items the list of stored tasks
+     * @param keyword the string to filter by
+     * @return one header line followed by one line per matching item
+     */
     private static String[] tasksFind(List<Task> items, String keyword) {
         ArrayList<String> lines = new ArrayList<>();
         lines.add("Here are the tasks with keyword: " + keyword + ":");
