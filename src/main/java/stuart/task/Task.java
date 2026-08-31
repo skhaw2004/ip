@@ -93,4 +93,8 @@ public class Task {
     public boolean isOverdue() {
         return false;
     }
+
+    public boolean containsKeyword(String keyword) {
+        return this.description.contains(keyword);
+    }
 }
