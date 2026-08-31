@@ -28,6 +28,8 @@ public class ParserTest {
         assertEquals(-1, result);
     }
 
+    // subsequent tests are AI-prompted
+
     @Test
     public void parseCommand_listKeyword_returnsListType() {
         Parser.ParsedCommand result = Parser.parseCommand("list");
