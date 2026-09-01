@@ -55,111 +55,13 @@ public class Stuart {
         }
 
         // Keep reading commands until the user says "bye", or the input runs out.
-        readLoop:
         while (ui.hasNextCommand()) {
             Parser.ParsedCommand parsed = Parser.parseCommand(ui.readCommand().trim());
+            if (parsed.type() == Parser.CommandType.BYE) {
+                break;
+            }
             try {
-                switch (parsed.type()) {
-                    case BYE:
-                        break readLoop;
-                    case LIST:
-                        // output list of tasks
-                        ui.reply(listItems(tasks.getAll(), "Here are the tasks in your list:"));
-                        break;
-                    case SORTED:
-                        // output list of tasks sorted by date, dateless tasks last
-                        ui.reply(listItems(sortedByDate(tasks.getAll()), "Here are your tasks sorted by date:"));
-                        break;
-                    case ON:
-                        // list tasks occurring on a specific date
-                        if (parsed.arguments().isEmpty()) {
-                            throw new StuartException("Please specify a date, e.g. \"on 2019-10-15\".");
-                        }
-                        LocalDate date = Parser.parseDate(parsed.arguments());
-                        ui.reply(tasksOn(tasks.getAll(), date));
-                        break;
-                    case FIND:
-                        // list tasks that contains keyword in its description
-                        if (parsed.arguments().isEmpty()) {
-                            throw new StuartException(
-                                    "Please specify the keyword you want to find tasks with, e.g find shopping");
-                        }
-                        String keyword = parsed.arguments();
-                        ui.reply(tasksFind(tasks.getAll(), keyword));
-                        break;
-                    case MARK: {
-                        // mark a task
-                        int index = Parser.parseIndex(parsed.arguments());
-                        Task task = tasks.get(index);
-                        task.markAsDone();
-                        storage.save(tasks.getAll(), ui);
-                        ui.reply("Nice! I've marked this task as done:", "  " + withOverdueFlag(task));
-                        break;
-                    }
-                    case UNMARK: {
-                        // unmark a task
-                        int index = Parser.parseIndex(parsed.arguments());
-                        Task task = tasks.get(index);
-                        task.markAsNotDone();
-                        storage.save(tasks.getAll(), ui);
-                        ui.reply("OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task));
-                        break;
-                    }
-                    case DELETE: {
-                        // delete a task
-                        int index = Parser.parseIndex(parsed.arguments());
-                        Task removedTask = tasks.delete(index);
-                        storage.save(tasks.getAll(), ui);
-                        ui.reply("Noted. I've removed this task:",
-                                "  " + withOverdueFlag(removedTask),
-                                "Now you have " + tasks.size() + " tasks in the list.");
-                        break;
-                    }
-                    case TODO:
-                        // add a to-do
-                        if (parsed.arguments().isEmpty()) {
-                            // empty description
-                            throw new StuartException("The description of a todo cannot be empty.");
-                        }
-                        Parser.checkNoSaveDelimiter(parsed.arguments());
-                        addTask(new ToDos(parsed.arguments()));
-                        break;
-                    case DEADLINE: {
-                        // add a deadline
-                        Parser.DeadlineFields fields = Parser.parseDeadlineFields(parsed.arguments());
-                        if (fields.description().isEmpty()) {
-                            // empty description
-                            throw new StuartException("The description of a deadline cannot be empty.");
-                        }
-                        if (fields.by().isEmpty()) {
-                            throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
-                        }
-                        Parser.checkNoSaveDelimiter(fields.description());
-                        LocalDate byDate = Parser.parseDate(fields.by());
-                        addTask(new Deadlines(fields.description(), byDate));
-                        break;
-                    }
-                    case EVENT: {
-                        // add an event
-                        Parser.EventFields fields = Parser.parseEventFields(parsed.arguments());
-                        if (fields.description().isEmpty()) {
-                            // empty description
-                            throw new StuartException("The description of an event cannot be empty.");
-                        }
-                        if (fields.from().isEmpty() || fields.to().isEmpty()) {
-                            throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
-                        }
-                        Parser.checkNoSaveDelimiter(fields.description());
-                        LocalDate fromDate = Parser.parseDate(fields.from());
-                        LocalDate toDate = Parser.parseDate(fields.to());
-                        addTask(new Events(fields.description(), fromDate, toDate));
-                        break;
-                    }
-                    default:
-                        // not any recognized command
-                        throw new StuartException("To add a task, use the following format:\n"
-                                + Ui.TEXT_INDENT + "<task type> <task description>");
-                }
+                ui.reply(handleCommand(parsed));
             } catch (StuartException e) {
                 ui.reply(e.getMessage());
             }
@@ -179,15 +81,144 @@ public class Stuart {
     }
 
     /**
-     * Appends {@code task} to {@link #tasks} and reports it.
+     * Loads previously saved tasks from disk. {@link #run()} already does
+     * this itself (after showing its banner) for the console interface;
+     * a GUI entry point has no equivalent startup sequence, so it should
+     * call this once before the first {@link #getResponse(String)}.
+     *
+     * @return a warning message if loading failed, or an empty string otherwise
+     */
+    public String initialize() {
+        try {
+            tasks = new TaskList(storage.load(ui));
+            return "";
+        } catch (StuartException e) {
+            return "Warning: " + e.getMessage() + ".";
+        }
+    }
+
+    /**
+     * Generates a response for a single line of user input, for use by a GUI
+     * that sends one command at a time rather than looping over a
+     * {@code Scanner} the way {@link #run()} does.
+     *
+     * @param input one line of user input, as typed
+     * @return the chatbot's reply text
+     */
+    public String getResponse(String input) {
+        Parser.ParsedCommand parsed = Parser.parseCommand(input.trim());
+        if (parsed.type() == Parser.CommandType.BYE) {
+            return "Bye. Hope to see you again soon!";
+        }
+        try {
+            return String.join("\n", handleCommand(parsed));
+        } catch (StuartException e) {
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * Executes a parsed command (every type except {@code BYE}, which the
+     * caller handles itself) and returns its reply as one line per element.
+     *
+     * @param parsed the command to execute
+     * @return the reply lines to show the user
+     * @throws StuartException if {@code parsed} is malformed or invalid
+     */
+    private String[] handleCommand(Parser.ParsedCommand parsed) throws StuartException {
+        switch (parsed.type()) {
+            case LIST:
+                return listItems(tasks.getAll(), "Here are the tasks in your list:");
+            case SORTED:
+                return listItems(sortedByDate(tasks.getAll()), "Here are your tasks sorted by date:");
+            case ON:
+                if (parsed.arguments().isEmpty()) {
+                    throw new StuartException("Please specify a date, e.g. \"on 2019-10-15\".");
+                }
+                LocalDate date = Parser.parseDate(parsed.arguments());
+                return tasksOn(tasks.getAll(), date);
+            case FIND:
+                if (parsed.arguments().isEmpty()) {
+                    throw new StuartException(
+                            "Please specify the keyword you want to find tasks with, e.g find shopping");
+                }
+                String keyword = parsed.arguments();
+                return tasksFind(tasks.getAll(), keyword);
+            case MARK: {
+                int index = Parser.parseIndex(parsed.arguments());
+                Task task = tasks.get(index);
+                task.markAsDone();
+                storage.save(tasks.getAll(), ui);
+                return new String[] {"Nice! I've marked this task as done:", "  " + withOverdueFlag(task)};
+            }
+            case UNMARK: {
+                int index = Parser.parseIndex(parsed.arguments());
+                Task task = tasks.get(index);
+                task.markAsNotDone();
+                storage.save(tasks.getAll(), ui);
+                return new String[] {"OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task)};
+            }
+            case DELETE: {
+                int index = Parser.parseIndex(parsed.arguments());
+                Task removedTask = tasks.delete(index);
+                storage.save(tasks.getAll(), ui);
+                return new String[] {
+                    "Noted. I've removed this task:",
+                    "  " + withOverdueFlag(removedTask),
+                    "Now you have " + tasks.size() + " tasks in the list."
+                };
+            }
+            case TODO:
+                if (parsed.arguments().isEmpty()) {
+                    throw new StuartException("The description of a todo cannot be empty.");
+                }
+                Parser.checkNoSaveDelimiter(parsed.arguments());
+                return addTask(new ToDos(parsed.arguments()));
+            case DEADLINE: {
+                Parser.DeadlineFields fields = Parser.parseDeadlineFields(parsed.arguments());
+                if (fields.description().isEmpty()) {
+                    throw new StuartException("The description of a deadline cannot be empty.");
+                }
+                if (fields.by().isEmpty()) {
+                    throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
+                }
+                Parser.checkNoSaveDelimiter(fields.description());
+                LocalDate byDate = Parser.parseDate(fields.by());
+                return addTask(new Deadlines(fields.description(), byDate));
+            }
+            case EVENT: {
+                Parser.EventFields fields = Parser.parseEventFields(parsed.arguments());
+                if (fields.description().isEmpty()) {
+                    throw new StuartException("The description of an event cannot be empty.");
+                }
+                if (fields.from().isEmpty() || fields.to().isEmpty()) {
+                    throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
+                }
+                Parser.checkNoSaveDelimiter(fields.description());
+                LocalDate fromDate = Parser.parseDate(fields.from());
+                LocalDate toDate = Parser.parseDate(fields.to());
+                return addTask(new Events(fields.description(), fromDate, toDate));
+            }
+            default:
+                throw new StuartException("To add a task, use the following format:\n"
+                        + Ui.TEXT_INDENT + "<task type> <task description>");
+        }
+    }
+
+    /**
+     * Appends {@code task} to {@link #tasks} and returns a reply describing it.
      *
      * @param task the task to add
+     * @return the reply lines to show the user
      */
-    private void addTask(Task task) {
+    private String[] addTask(Task task) {
         tasks.add(task);
         storage.save(tasks.getAll(), ui);
-        ui.reply("Got it. I've added this task:", "  " + withOverdueFlag(task),
-                "Now you have " + tasks.size() + " tasks in the list.");
+        return new String[] {
+            "Got it. I've added this task:",
+            "  " + withOverdueFlag(task),
+            "Now you have " + tasks.size() + " tasks in the list."
+        };
     }
 
     /**
