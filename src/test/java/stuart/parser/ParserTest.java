@@ -1,14 +1,14 @@
 package stuart.parser;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
 import stuart.exception.StuartException;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ParserTest {
 
@@ -169,7 +169,7 @@ public class ParserTest {
 
     @Test
     public void parseEventFields_toBeforeFrom_throwsStuartException() {
-        assertThrows(StuartException.class,
-                () -> Parser.parseEventFields("meeting /to 2019-10-16 /from 2019-10-15"));
+        assertThrows(StuartException.class, () ->
+                Parser.parseEventFields("meeting /to 2019-10-16 /from 2019-10-15"));
     }
 }
