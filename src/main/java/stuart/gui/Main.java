@@ -20,8 +20,8 @@ import stuart.Stuart;
 public class Main extends Application {
     private static final String DATA_FILE_PATH = "./data/stuart.txt";
 
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
-    private final Image stuartImage = new Image(this.getClass().getResourceAsStream("/images/DaStuart.png"));
+    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/messi_ugly.jpeg"));
+    private final Image stuartImage = new Image(this.getClass().getResourceAsStream("/images/stuart_chinese.png"));
     private final Stuart stuart = new Stuart(DATA_FILE_PATH);
 
     private ScrollPane scrollPane;
