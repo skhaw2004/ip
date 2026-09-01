@@ -1,32 +1,24 @@
 package stuart.gui;
 
 import java.io.IOException;
-import java.util.Collections;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 /**
- * A chat bubble: a speaker's avatar next to their message text, defined in
+ * A chat bubble containing a speaker's message text, defined in
  * {@code /view/DialogBox.fxml}. Used for both the user's messages and
- * Stuart's replies, mirrored left/right via {@link #getUserDialog} and
- * {@link #getStuartDialog}.
+ * Stuart's replies, styled and aligned to opposite sides via
+ * {@link #getUserDialog} and {@link #getStuartDialog}.
  */
 public class DialogBox extends HBox {
     @FXML
     private Label dialog;
-    @FXML
-    private ImageView displayPicture;
 
-    private DialogBox(String text, Image img) {
+    private DialogBox(String text) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("/view/DialogBox.fxml"));
             fxmlLoader.setController(this);
@@ -37,40 +29,37 @@ public class DialogBox extends HBox {
         }
 
         dialog.setText(text);
-        displayPicture.setImage(img);
     }
 
     /**
-     * Mirrors this dialog box so the avatar sits on the left and the text on
-     * the right, to visually distinguish Stuart's replies from user input.
+     * Restyles this dialog box as a reply: aligned left, with the "other
+     * speaker" bubble color, instead of the default right-aligned "mine".
      */
     private void flip() {
-        ObservableList<Node> tmp = FXCollections.observableArrayList(this.getChildren());
-        Collections.reverse(tmp);
-        getChildren().setAll(tmp);
         setAlignment(Pos.TOP_LEFT);
+        dialog.getStyleClass().add("bubble-other");
     }
 
     /**
      * Creates a dialog box for a message the user sent.
      *
      * @param text the message text
-     * @param img the user's avatar
-     * @return the dialog box, with the avatar on the right
+     * @return the dialog box, right-aligned in the "mine" bubble color
      */
-    public static DialogBox getUserDialog(String text, Image img) {
-        return new DialogBox(text, img);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox db = new DialogBox(text);
+        db.dialog.getStyleClass().add("bubble-mine");
+        return db;
     }
 
     /**
      * Creates a dialog box for one of Stuart's replies.
      *
      * @param text the reply text
-     * @param img Stuart's avatar
-     * @return the dialog box, mirrored so the avatar is on the left
+     * @return the dialog box, left-aligned in the "other speaker" bubble color
      */
-    public static DialogBox getStuartDialog(String text, Image img) {
-        DialogBox db = new DialogBox(text, img);
+    public static DialogBox getStuartDialog(String text) {
+        DialogBox db = new DialogBox(text);
         db.flip();
         return db;
     }
