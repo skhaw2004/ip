@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import stuart.Stuart;
@@ -12,6 +13,9 @@ import stuart.Stuart;
  * Controller for the main GUI, defined in {@code /view/MainWindow.fxml}.
  */
 public class MainWindow extends AnchorPane {
+    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/messi_ugly.jpeg"));
+    private final Image stuartImage = new Image(this.getClass().getResourceAsStream("/images/stuart_chinese.png"));
+
     @FXML
     private ScrollPane scrollPane;
     @FXML
@@ -39,7 +43,7 @@ public class MainWindow extends AnchorPane {
         String warning = stuart.initialize();
         String greeting = "Hello! I'm Stuart. What can I do for you?";
         dialogContainer.getChildren().add(
-                DialogBox.getStuartDialog(warning.isEmpty() ? greeting : warning + "\n" + greeting));
+                DialogBox.getStuartDialog(warning.isEmpty() ? greeting : warning + "\n" + greeting, stuartImage));
     }
 
     /**
@@ -54,8 +58,8 @@ public class MainWindow extends AnchorPane {
         }
         String stuartText = stuart.getResponse(userText);
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(userText),
-                DialogBox.getStuartDialog(stuartText)
+                DialogBox.getUserDialog(userText, userImage),
+                DialogBox.getStuartDialog(stuartText, stuartImage)
         );
         userInput.clear();
     }

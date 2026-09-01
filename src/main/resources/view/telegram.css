@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: #e6ebee;
+    -fx-background-color: #0e1621;
     -fx-font-family: "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
 }
@@ -12,6 +12,11 @@
     -fx-pref-width: 8;
 }
 
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #2b3947;
+    -fx-background-radius: 4;
+}
+
 #dialogContainer {
     -fx-background-color: transparent;
     -fx-spacing: 8;
@@ -19,29 +24,33 @@
 }
 
 .bubble-mine {
-    -fx-background-color: #3390ec;
+    -fx-background-color: #2b5278;
     -fx-background-radius: 16 16 4 16;
     -fx-text-fill: white;
+    -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
 }
 
 .bubble-other {
-    -fx-background-color: white;
+    -fx-background-color: #182533;
     -fx-background-radius: 16 16 16 4;
-    -fx-text-fill: #1c1c1c;
+    -fx-text-fill: #e8e8e8;
+    -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
 }
 
 #userInput {
-    -fx-background-color: white;
+    -fx-background-color: #242f3d;
     -fx-background-radius: 20;
-    -fx-border-color: #d5dbe0;
+    -fx-border-color: #324457;
     -fx-border-radius: 20;
     -fx-padding: 8 14 8 14;
+    -fx-text-fill: #e8e8e8;
+    -fx-prompt-text-fill: #6d7883;
 }
 
 #sendButton {
-    -fx-background-color: #3390ec;
+    -fx-background-color: #4ea4f5;
     -fx-background-radius: 22;
     -fx-text-fill: white;
     -fx-font-size: 16px;
@@ -49,5 +58,5 @@
 }
 
 #sendButton:hover {
-    -fx-background-color: #2b7fd1;
+    -fx-background-color: #3d8fe0;
 }
