@@ -74,6 +74,8 @@ public class Storage {
      * @throws StuartException if {@code line} is not validly formatted
      */
     private static Task parseSavedTask(String line) throws StuartException {
+        assert line.equals(line.trim()) : "load() should have already trimmed line before calling this";
+        assert !line.isEmpty() : "load() should have already skipped blank lines before calling this";
         String[] parts = line.split(" \\| ");
         if (parts.length < 3) {
             throw new StuartException("expected at least 3 fields: \"" + line + "\"");
