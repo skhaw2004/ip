@@ -37,6 +37,15 @@ public class Ui {
     /** Milliseconds between each colour step of the banner animation. */
     private static final int BANNER_FRAME_DELAY_MS = 40;
 
+    /** Phase offset between successive RGB channels in the colour cycle: 120 degrees. */
+    private static final double CHANNEL_PHASE_OFFSET = 2 * Math.PI / 3;
+
+    /** Center of the 0-255 RGB range that each channel's sine wave oscillates around. */
+    private static final int RGB_MIDPOINT = 128;
+
+    /** Amplitude of the sine wave driving each RGB channel. */
+    private static final int RGB_AMPLITUDE = 127;
+
     private final Scanner scanner;
 
     /**
@@ -67,9 +76,9 @@ public class Ui {
     private void animateBanner() {
         for (int frame = 0; frame < BANNER_ANIMATION_FRAMES; frame++) {
             double angle = 2 * Math.PI * frame / BANNER_ANIMATION_FRAMES;
-            int red = (int) (Math.sin(angle) * 127 + 128);
-            int green = (int) (Math.sin(angle + 2 * Math.PI / 3) * 127 + 128);
-            int blue = (int) (Math.sin(angle + 4 * Math.PI / 3) * 127 + 128);
+            int red = (int) (Math.sin(angle) * RGB_AMPLITUDE + RGB_MIDPOINT);
+            int green = (int) (Math.sin(angle + CHANNEL_PHASE_OFFSET) * RGB_AMPLITUDE + RGB_MIDPOINT);
+            int blue = (int) (Math.sin(angle + 2 * CHANNEL_PHASE_OFFSET) * RGB_AMPLITUDE + RGB_MIDPOINT);
             printBannerFrame("[1;38;2;" + red + ";" + green + ";" + blue + "m");
             try {
                 Thread.sleep(BANNER_FRAME_DELAY_MS);
