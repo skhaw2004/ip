@@ -28,6 +28,7 @@ public class TaskList {
      * @param tasks the initial tasks, in order
      */
     public TaskList(ArrayList<Task> tasks) {
+        assert tasks != null : "Storage#load always returns a list, even an empty one, never null";
         this.tasks = tasks;
     }
 

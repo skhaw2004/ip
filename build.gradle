@@ -71,6 +71,8 @@ shadowJar {
 
 run {
     standardInput = System.in
+    // assert statements are stripped at runtime unless explicitly enabled.
+    enableAssertions = true
 }
 
 checkstyle {
