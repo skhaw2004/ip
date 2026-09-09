@@ -28,7 +28,7 @@ public class Deadlines extends Task {
 
     @Override
     public String toSaveFormat() {
-        return super.toSaveFormat() + " | " + by;
+        return super.toSaveFormat() + SAVE_DELIMITER + by;
     }
 
     @Override

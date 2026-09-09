@@ -33,7 +33,7 @@ public class Events extends Task {
 
     @Override
     public String toSaveFormat() {
-        return super.toSaveFormat() + " | " + from + " | " + to;
+        return super.toSaveFormat() + SAVE_DELIMITER + from + SAVE_DELIMITER + to;
     }
 
     @Override
