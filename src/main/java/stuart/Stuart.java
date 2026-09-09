@@ -126,6 +126,8 @@ public class Stuart {
      * @throws StuartException if {@code parsed} is malformed or invalid
      */
     private String[] handleCommand(Parser.ParsedCommand parsed) throws StuartException {
+        assert parsed.type() != Parser.CommandType.BYE
+                : "run() and getResponse() both intercept BYE before ever calling handleCommand";
         switch (parsed.type()) {
             case LIST:
                 return listItems(tasks.getAll(), "Here are the tasks in your list:");

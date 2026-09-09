@@ -92,6 +92,8 @@ public class Parser {
      * @return the recognized command type and its argument text
      */
     public static ParsedCommand parseCommand(String trimmedCommand) {
+        assert trimmedCommand.equals(trimmedCommand.trim())
+                : "caller should have already trimmed trimmedCommand, per this method's own contract";
         if (trimmedCommand.equals("bye")) {
             return new ParsedCommand(CommandType.BYE, "");
         } else if (trimmedCommand.equals("list")) {
