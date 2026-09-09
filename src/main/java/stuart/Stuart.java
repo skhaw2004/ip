@@ -156,31 +156,10 @@ public class Stuart {
                 }
                 Parser.checkNoSaveDelimiter(parsed.arguments());
                 return addTask(new ToDos(parsed.arguments()));
-            case DEADLINE: {
-                Parser.DeadlineFields fields = Parser.parseDeadlineFields(parsed.arguments());
-                if (fields.description().isEmpty()) {
-                    throw new StuartException("The description of a deadline cannot be empty.");
-                }
-                if (fields.by().isEmpty()) {
-                    throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
-                }
-                Parser.checkNoSaveDelimiter(fields.description());
-                LocalDate byDate = Parser.parseDate(fields.by());
-                return addTask(new Deadlines(fields.description(), byDate));
-            }
-            case EVENT: {
-                Parser.EventFields fields = Parser.parseEventFields(parsed.arguments());
-                if (fields.description().isEmpty()) {
-                    throw new StuartException("The description of an event cannot be empty.");
-                }
-                if (fields.from().isEmpty() || fields.to().isEmpty()) {
-                    throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
-                }
-                Parser.checkNoSaveDelimiter(fields.description());
-                LocalDate fromDate = Parser.parseDate(fields.from());
-                LocalDate toDate = Parser.parseDate(fields.to());
-                return addTask(new Events(fields.description(), fromDate, toDate));
-            }
+            case DEADLINE:
+                return addDeadline(Parser.parseDeadlineFields(parsed.arguments()));
+            case EVENT:
+                return addEvent(Parser.parseEventFields(parsed.arguments()));
             default:
                 throw new StuartException("To add a task, use the following format:\n"
                         + Ui.TEXT_INDENT + "<task type> <task description>");
@@ -226,6 +205,45 @@ public class Stuart {
             "  " + withOverdueFlag(removedTask),
             "Now you have " + tasks.size() + " tasks in the list."
         };
+    }
+
+    /**
+     * Validates {@code fields} and adds the deadline task they describe.
+     *
+     * @param fields the parsed description and {@code /by} date text
+     * @return the reply lines to show the user
+     * @throws StuartException if the description or {@code /by} date is empty
+     */
+    private String[] addDeadline(Parser.DeadlineFields fields) throws StuartException {
+        if (fields.description().isEmpty()) {
+            throw new StuartException("The description of a deadline cannot be empty.");
+        }
+        if (fields.by().isEmpty()) {
+            throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
+        }
+        Parser.checkNoSaveDelimiter(fields.description());
+        LocalDate byDate = Parser.parseDate(fields.by());
+        return addTask(new Deadlines(fields.description(), byDate));
+    }
+
+    /**
+     * Validates {@code fields} and adds the event task they describe.
+     *
+     * @param fields the parsed description, {@code /from}, and {@code /to} text
+     * @return the reply lines to show the user
+     * @throws StuartException if the description, {@code /from}, or {@code /to} is empty
+     */
+    private String[] addEvent(Parser.EventFields fields) throws StuartException {
+        if (fields.description().isEmpty()) {
+            throw new StuartException("The description of an event cannot be empty.");
+        }
+        if (fields.from().isEmpty() || fields.to().isEmpty()) {
+            throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
+        }
+        Parser.checkNoSaveDelimiter(fields.description());
+        LocalDate fromDate = Parser.parseDate(fields.from());
+        LocalDate toDate = Parser.parseDate(fields.to());
+        return addTask(new Events(fields.description(), fromDate, toDate));
     }
 
     /**
