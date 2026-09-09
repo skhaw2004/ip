@@ -144,30 +144,12 @@ public class Stuart {
                 }
                 String keyword = parsed.arguments();
                 return tasksFind(tasks.getAll(), keyword);
-            case MARK: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task task = tasks.get(index);
-                task.markAsDone();
-                storage.save(tasks.getAll(), ui);
-                return new String[] {"Nice! I've marked this task as done:", "  " + withOverdueFlag(task)};
-            }
-            case UNMARK: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task task = tasks.get(index);
-                task.markAsNotDone();
-                storage.save(tasks.getAll(), ui);
-                return new String[] {"OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task)};
-            }
-            case DELETE: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task removedTask = tasks.delete(index);
-                storage.save(tasks.getAll(), ui);
-                return new String[] {
-                    "Noted. I've removed this task:",
-                    "  " + withOverdueFlag(removedTask),
-                    "Now you have " + tasks.size() + " tasks in the list."
-                };
-            }
+            case MARK:
+                return markTask(Parser.parseIndex(parsed.arguments()), true);
+            case UNMARK:
+                return markTask(Parser.parseIndex(parsed.arguments()), false);
+            case DELETE:
+                return deleteTask(Parser.parseIndex(parsed.arguments()));
             case TODO:
                 if (parsed.arguments().isEmpty()) {
                     throw new StuartException("The description of a todo cannot be empty.");
@@ -203,6 +185,47 @@ public class Stuart {
                 throw new StuartException("To add a task, use the following format:\n"
                         + Ui.TEXT_INDENT + "<task type> <task description>");
         }
+    }
+
+    /**
+     * Marks the task at {@code index} as done or not done, saves, and returns
+     * a reply describing it.
+     *
+     * @param index the 0-based index of the task to mark
+     * @param done whether to mark it done ({@code true}) or not done ({@code false})
+     * @return the reply lines to show the user
+     * @throws StuartException if {@code index} is not a valid task number
+     */
+    private String[] markTask(int index, boolean done) throws StuartException {
+        Task task = tasks.get(index);
+        if (done) {
+            task.markAsDone();
+        } else {
+            task.markAsNotDone();
+        }
+        storage.save(tasks.getAll(), ui);
+        String message = done
+                ? "Nice! I've marked this task as done:"
+                : "OK, I've marked this task as not done yet:";
+        return new String[] {message, "  " + withOverdueFlag(task)};
+    }
+
+    /**
+     * Removes the task at {@code index} from {@link #tasks}, saves, and
+     * returns a reply describing it.
+     *
+     * @param index the 0-based index of the task to remove
+     * @return the reply lines to show the user
+     * @throws StuartException if {@code index} is not a valid task number
+     */
+    private String[] deleteTask(int index) throws StuartException {
+        Task removedTask = tasks.delete(index);
+        storage.save(tasks.getAll(), ui);
+        return new String[] {
+            "Noted. I've removed this task:",
+            "  " + withOverdueFlag(removedTask),
+            "Now you have " + tasks.size() + " tasks in the list."
+        };
     }
 
     /**
