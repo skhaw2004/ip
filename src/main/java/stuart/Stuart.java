@@ -146,65 +146,106 @@ public class Stuart {
                 }
                 String keyword = parsed.arguments();
                 return tasksFind(tasks.getAll(), keyword);
-            case MARK: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task task = tasks.get(index);
-                task.markAsDone();
-                storage.save(tasks.getAll(), ui);
-                return new String[] {"Nice! I've marked this task as done:", "  " + withOverdueFlag(task)};
-            }
-            case UNMARK: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task task = tasks.get(index);
-                task.markAsNotDone();
-                storage.save(tasks.getAll(), ui);
-                return new String[] {"OK, I've marked this task as not done yet:", "  " + withOverdueFlag(task)};
-            }
-            case DELETE: {
-                int index = Parser.parseIndex(parsed.arguments());
-                Task removedTask = tasks.delete(index);
-                storage.save(tasks.getAll(), ui);
-                return new String[] {
-                    "Noted. I've removed this task:",
-                    "  " + withOverdueFlag(removedTask),
-                    "Now you have " + tasks.size() + " tasks in the list."
-                };
-            }
+            case MARK:
+                return markTask(Parser.parseIndex(parsed.arguments()), true);
+            case UNMARK:
+                return markTask(Parser.parseIndex(parsed.arguments()), false);
+            case DELETE:
+                return deleteTask(Parser.parseIndex(parsed.arguments()));
             case TODO:
                 if (parsed.arguments().isEmpty()) {
                     throw new StuartException("The description of a todo cannot be empty.");
                 }
                 Parser.checkNoSaveDelimiter(parsed.arguments());
                 return addTask(new ToDos(parsed.arguments()));
-            case DEADLINE: {
-                Parser.DeadlineFields fields = Parser.parseDeadlineFields(parsed.arguments());
-                if (fields.description().isEmpty()) {
-                    throw new StuartException("The description of a deadline cannot be empty.");
-                }
-                if (fields.by().isEmpty()) {
-                    throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
-                }
-                Parser.checkNoSaveDelimiter(fields.description());
-                LocalDate byDate = Parser.parseDate(fields.by());
-                return addTask(new Deadlines(fields.description(), byDate));
-            }
-            case EVENT: {
-                Parser.EventFields fields = Parser.parseEventFields(parsed.arguments());
-                if (fields.description().isEmpty()) {
-                    throw new StuartException("The description of an event cannot be empty.");
-                }
-                if (fields.from().isEmpty() || fields.to().isEmpty()) {
-                    throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
-                }
-                Parser.checkNoSaveDelimiter(fields.description());
-                LocalDate fromDate = Parser.parseDate(fields.from());
-                LocalDate toDate = Parser.parseDate(fields.to());
-                return addTask(new Events(fields.description(), fromDate, toDate));
-            }
+            case DEADLINE:
+                return addDeadline(Parser.parseDeadlineFields(parsed.arguments()));
+            case EVENT:
+                return addEvent(Parser.parseEventFields(parsed.arguments()));
             default:
                 throw new StuartException("To add a task, use the following format:\n"
                         + Ui.TEXT_INDENT + "<task type> <task description>");
         }
+    }
+
+    /**
+     * Marks the task at {@code index} as done or not done, saves, and returns
+     * a reply describing it.
+     *
+     * @param index the 0-based index of the task to mark
+     * @param done whether to mark it done ({@code true}) or not done ({@code false})
+     * @return the reply lines to show the user
+     * @throws StuartException if {@code index} is not a valid task number
+     */
+    private String[] markTask(int index, boolean done) throws StuartException {
+        Task task = tasks.get(index);
+        if (done) {
+            task.markAsDone();
+        } else {
+            task.markAsNotDone();
+        }
+        storage.save(tasks.getAll(), ui);
+        String message = done
+                ? "Nice! I've marked this task as done:"
+                : "OK, I've marked this task as not done yet:";
+        return new String[] {message, "  " + withOverdueFlag(task)};
+    }
+
+    /**
+     * Removes the task at {@code index} from {@link #tasks}, saves, and
+     * returns a reply describing it.
+     *
+     * @param index the 0-based index of the task to remove
+     * @return the reply lines to show the user
+     * @throws StuartException if {@code index} is not a valid task number
+     */
+    private String[] deleteTask(int index) throws StuartException {
+        Task removedTask = tasks.delete(index);
+        storage.save(tasks.getAll(), ui);
+        return new String[] {
+            "Noted. I've removed this task:",
+            "  " + withOverdueFlag(removedTask),
+            "Now you have " + tasks.size() + " tasks in the list."
+        };
+    }
+
+    /**
+     * Validates {@code fields} and adds the deadline task they describe.
+     *
+     * @param fields the parsed description and {@code /by} date text
+     * @return the reply lines to show the user
+     * @throws StuartException if the description or {@code /by} date is empty
+     */
+    private String[] addDeadline(Parser.DeadlineFields fields) throws StuartException {
+        if (fields.description().isEmpty()) {
+            throw new StuartException("The description of a deadline cannot be empty.");
+        }
+        if (fields.by().isEmpty()) {
+            throw new StuartException("The \"/by\" date of a deadline cannot be empty.");
+        }
+        Parser.checkNoSaveDelimiter(fields.description());
+        LocalDate byDate = Parser.parseDate(fields.by());
+        return addTask(new Deadlines(fields.description(), byDate));
+    }
+
+    /**
+     * Validates {@code fields} and adds the event task they describe.
+     *
+     * @param fields the parsed description, {@code /from}, and {@code /to} text
+     * @return the reply lines to show the user
+     * @throws StuartException if the description, {@code /from}, or {@code /to} is empty
+     */
+    private String[] addEvent(Parser.EventFields fields) throws StuartException {
+        if (fields.description().isEmpty()) {
+            throw new StuartException("The description of an event cannot be empty.");
+        }
+        if (fields.from().isEmpty() || fields.to().isEmpty()) {
+            throw new StuartException("The \"/from\" and \"/to\" times of an event cannot be empty.");
+        }
+        Parser.checkNoSaveDelimiter(fields.description());
+        LocalDate fromDate = Parser.parseDate(fields.from());
+        LocalDate toDate = Parser.parseDate(fields.to());
+        return addTask(new Events(fields.description(), fromDate, toDate));
     }
 
     /**

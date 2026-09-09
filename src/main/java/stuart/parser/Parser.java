@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 import stuart.exception.StuartException;
+import stuart.task.Task;
 import stuart.ui.Ui;
 
 /**
@@ -161,8 +162,8 @@ public class Parser {
      * @throws StuartException if {@code text} contains {@code " | "}
      */
     public static void checkNoSaveDelimiter(String text) throws StuartException {
-        if (text.contains(" | ")) {
-            throw new StuartException("Task details cannot contain \" | \".");
+        if (text.contains(Task.SAVE_DELIMITER)) {
+            throw new StuartException("Task details cannot contain \"" + Task.SAVE_DELIMITER + "\".");
         }
     }
 

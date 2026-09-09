@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import stuart.exception.StuartException;
 import stuart.task.Deadlines;
@@ -76,7 +77,8 @@ public class Storage {
     private static Task parseSavedTask(String line) throws StuartException {
         assert line.equals(line.trim()) : "load() should have already trimmed line before calling this";
         assert !line.isEmpty() : "load() should have already skipped blank lines before calling this";
-        String[] parts = line.split(" \\| ");
+        String[] parts = line.split(Pattern.quote(Task.SAVE_DELIMITER));
+
         if (parts.length < 3) {
             throw new StuartException("expected at least 3 fields: \"" + line + "\"");
         }

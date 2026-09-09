@@ -14,6 +14,9 @@ public class Task {
     /** Formatter used to display deadline/event dates, e.g. "Oct 15 2019". */
     public static final DateTimeFormatter DISPLAY_DATE_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy");
 
+    /** Field separator used in the save file, e.g. {@code "T | 1 | read book"}. */
+    public static final String SAVE_DELIMITER = " | ";
+
     /** What the task is. */
     protected String description;
     /** Whether the task has been marked done. */
@@ -75,7 +78,7 @@ public class Task {
      * @return the save-file line for this task, without a trailing newline
      */
     public String toSaveFormat() {
-        return type.getTag() + " | " + (isDone ? "1" : "0") + " | " + description;
+        return type.getTag() + SAVE_DELIMITER + (isDone ? "1" : "0") + SAVE_DELIMITER + description;
     }
 
     /**
