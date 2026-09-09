@@ -1,9 +1,10 @@
 package stuart;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import stuart.exception.StuartException;
 import stuart.parser.Parser;
@@ -273,12 +274,9 @@ public class Stuart {
      *         formatted as "{@code index.[status] item}"
      */
     private static String[] listItems(List<Task> items, String header) {
-        String[] lines = new String[items.size() + 1];
-        lines[0] = header;
-        for (int i = 0; i < items.size(); i++) {
-            lines[i + 1] = formatNumberedTask(i + 1, items.get(i));
-        }
-        return lines;
+        Stream<String> numberedLines = IntStream.range(0, items.size())
+                .mapToObj(i -> formatNumberedTask(i + 1, items.get(i)));
+        return Stream.concat(Stream.of(header), numberedLines).toArray(String[]::new);
     }
 
     /**
@@ -317,9 +315,7 @@ public class Stuart {
      * @return a new, sorted list
      */
     private static List<Task> sortedByDate(List<Task> items) {
-        ArrayList<Task> sorted = new ArrayList<>(items);
-        sorted.sort(Stuart::compareByDate);
-        return sorted;
+        return items.stream().sorted(Stuart::compareByDate).toList();
     }
 
     /**
@@ -355,14 +351,11 @@ public class Stuart {
      * @return one header line followed by one line per matching item
      */
     private static String[] tasksOn(List<Task> items, LocalDate date) {
-        ArrayList<String> lines = new ArrayList<>();
-        lines.add("Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":");
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).occursOn(date)) {
-                lines.add(formatNumberedTask(i + 1, items.get(i)));
-            }
-        }
-        return lines.toArray(new String[0]);
+        Stream<String> matchingLines = IntStream.range(0, items.size())
+                .filter(i -> items.get(i).occursOn(date))
+                .mapToObj(i -> formatNumberedTask(i + 1, items.get(i)));
+        String header = "Here are the tasks occurring on " + date.format(Task.DISPLAY_DATE_FORMAT) + ":";
+        return Stream.concat(Stream.of(header), matchingLines).toArray(String[]::new);
     }
 
     /**
@@ -374,13 +367,10 @@ public class Stuart {
      * @return one header line followed by one line per matching item
      */
     private static String[] tasksFind(List<Task> items, String keyword) {
-        ArrayList<String> lines = new ArrayList<>();
-        lines.add("Here are the tasks with keyword: " + keyword + ":");
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).containsKeyword(keyword)) {
-                lines.add(formatNumberedTask(i + 1, items.get(i)));
-            }
-        }
-        return lines.toArray(new String[0]);
+        Stream<String> matchingLines = IntStream.range(0, items.size())
+                .filter(i -> items.get(i).containsKeyword(keyword))
+                .mapToObj(i -> formatNumberedTask(i + 1, items.get(i)));
+        String header = "Here are the tasks with keyword: " + keyword + ":";
+        return Stream.concat(Stream.of(header), matchingLines).toArray(String[]::new);
     }
 }
