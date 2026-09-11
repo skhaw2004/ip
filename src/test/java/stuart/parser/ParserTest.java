@@ -110,6 +110,27 @@ public class ParserTest {
     }
 
     @Test
+    public void parseCommand_remindWithNoArgument_returnsEmptyArguments() {
+        Parser.ParsedCommand result = Parser.parseCommand("remind");
+        assertEquals(Parser.CommandType.REMIND, result.type());
+        assertEquals("", result.arguments());
+    }
+
+    @Test
+    public void parseCommand_remindWithDayCount_returnsRemindTypeWithDayCountArgument() {
+        Parser.ParsedCommand result = Parser.parseCommand("remind 7");
+        assertEquals(Parser.CommandType.REMIND, result.type());
+        assertEquals("7", result.arguments());
+    }
+
+    @Test
+    public void parseCommand_wordStartingWithRemind_notMatchedAsRemindCommand() {
+        Parser.ParsedCommand result = Parser.parseCommand("reminders");
+        assertEquals(Parser.CommandType.UNKNOWN, result.type());
+        assertEquals("reminders", result.arguments());
+    }
+
+    @Test
     public void parseIndex_validNumberWithWhitespace_returnsZeroBasedIndex() {
         int result = Parser.parseIndex("  3  ");
         assertEquals(2, result);

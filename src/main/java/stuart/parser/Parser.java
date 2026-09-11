@@ -33,6 +33,8 @@ public class Parser {
         MARK,
         /** Find tasks with a keyword. */
         FIND,
+        /** List tasks due soon. */
+        REMIND,
         /** Mark a task as not done. */
         UNMARK,
         /** Delete a task. */
@@ -116,6 +118,8 @@ public class Parser {
             return new ParsedCommand(CommandType.EVENT, trimmedCommand.substring("event".length()).trim());
         } else if (trimmedCommand.equals("find") || trimmedCommand.startsWith("find ")) {
             return new ParsedCommand(CommandType.FIND, trimmedCommand.substring("find".length()).trim());
+        } else if (trimmedCommand.equals("remind") || trimmedCommand.startsWith("remind ")) {
+            return new ParsedCommand(CommandType.REMIND, trimmedCommand.substring("remind".length()).trim());
         } else {
             return new ParsedCommand(CommandType.UNKNOWN, trimmedCommand);
         }
