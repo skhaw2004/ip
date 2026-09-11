@@ -78,4 +78,41 @@ public class EventsTest {
         Events task = new Events("meeting", LocalDate.of(2998, 12, 31), LocalDate.of(2999, 1, 1));
         assertFalse(task.isOverdue());
     }
+
+    @Test
+    public void isDueSoon_fromWithinWindowNotDone_returnsTrue() {
+        Events task = new Events("meeting", LocalDate.now().plusDays(2), LocalDate.now().plusDays(3));
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_fromAtWindowBoundary_returnsTrue() {
+        Events task = new Events("meeting", LocalDate.now().plusDays(3), LocalDate.now().plusDays(4));
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_fromToday_returnsTrue() {
+        Events task = new Events("meeting", LocalDate.now(), LocalDate.now().plusDays(1));
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_fromBeyondWindow_returnsFalse() {
+        Events task = new Events("meeting", LocalDate.now().plusDays(4), LocalDate.now().plusDays(5));
+        assertFalse(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_fromAlreadyPast_returnsFalse() {
+        Events task = new Events("meeting", LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+        assertFalse(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_withinWindowButDone_returnsFalse() {
+        Events task = new Events("meeting", LocalDate.now().plusDays(2), LocalDate.now().plusDays(3));
+        task.markAsDone();
+        assertFalse(task.isDueSoon(3));
+    }
 }

@@ -45,4 +45,10 @@ public class Deadlines extends Task {
     public boolean isOverdue() {
         return !isDone && by.isBefore(LocalDate.now());
     }
+
+    @Override
+    public boolean isDueSoon(int days) {
+        LocalDate today = LocalDate.now();
+        return !isDone && !by.isBefore(today) && !by.isAfter(today.plusDays(days));
+    }
 }

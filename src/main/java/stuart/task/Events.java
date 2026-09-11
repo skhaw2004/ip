@@ -50,4 +50,10 @@ public class Events extends Task {
     public boolean isOverdue() {
         return !isDone && to.isBefore(LocalDate.now());
     }
+
+    @Override
+    public boolean isDueSoon(int days) {
+        LocalDate today = LocalDate.now();
+        return !isDone && !from.isBefore(today) && !from.isAfter(today.plusDays(days));
+    }
 }

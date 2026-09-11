@@ -60,4 +60,41 @@ public class DeadlinesTest {
         Deadlines task = new Deadlines("return book", LocalDate.of(2999, 1, 1));
         assertFalse(task.isOverdue());
     }
+
+    @Test
+    public void isDueSoon_byWithinWindowNotDone_returnsTrue() {
+        Deadlines task = new Deadlines("return book", LocalDate.now().plusDays(2));
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_byAtWindowBoundary_returnsTrue() {
+        Deadlines task = new Deadlines("return book", LocalDate.now().plusDays(3));
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_byToday_returnsTrue() {
+        Deadlines task = new Deadlines("return book", LocalDate.now());
+        assertTrue(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_byBeyondWindow_returnsFalse() {
+        Deadlines task = new Deadlines("return book", LocalDate.now().plusDays(4));
+        assertFalse(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_byAlreadyPast_returnsFalse() {
+        Deadlines task = new Deadlines("return book", LocalDate.now().minusDays(1));
+        assertFalse(task.isDueSoon(3));
+    }
+
+    @Test
+    public void isDueSoon_withinWindowButDone_returnsFalse() {
+        Deadlines task = new Deadlines("return book", LocalDate.now().plusDays(2));
+        task.markAsDone();
+        assertFalse(task.isDueSoon(3));
+    }
 }
