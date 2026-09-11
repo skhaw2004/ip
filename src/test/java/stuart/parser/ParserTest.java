@@ -143,6 +143,28 @@ public class ParserTest {
     }
 
     @Test
+    public void parseDayCount_validNumber_returnsParsedDays() throws StuartException {
+        int result = Parser.parseDayCount("7");
+        assertEquals(7, result);
+    }
+
+    @Test
+    public void parseDayCount_zero_returnsZero() throws StuartException {
+        int result = Parser.parseDayCount("0");
+        assertEquals(0, result);
+    }
+
+    @Test
+    public void parseDayCount_negativeNumber_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseDayCount("-1"));
+    }
+
+    @Test
+    public void parseDayCount_nonNumericText_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseDayCount("soon"));
+    }
+
+    @Test
     public void parseDate_validDate_returnsParsedDate() throws StuartException {
         LocalDate result = Parser.parseDate("2019-10-15");
         assertEquals(LocalDate.of(2019, 10, 15), result);

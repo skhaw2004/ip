@@ -25,6 +25,9 @@ public class Stuart {
     /** Path to the file tasks are saved to, relative to the project root. */
     private static final String DATA_FILE_PATH = "./data/stuart.txt";
 
+    /** How many days ahead {@code remind} looks by default, when given no argument. */
+    private static final int DEFAULT_REMINDER_WINDOW_DAYS = 3;
+
     private final Ui ui;
     private final Storage storage;
     private TaskList tasks;
@@ -147,6 +150,11 @@ public class Stuart {
                 }
                 String keyword = parsed.arguments();
                 return tasksFind(tasks.getAll(), keyword);
+            case REMIND:
+                int reminderDays = parsed.arguments().isEmpty()
+                        ? DEFAULT_REMINDER_WINDOW_DAYS
+                        : Parser.parseDayCount(parsed.arguments());
+                return remindTasks(tasks.getAll(), reminderDays);
             case MARK:
                 return markTask(Parser.parseIndex(parsed.arguments()), true);
             case UNMARK:
@@ -371,6 +379,24 @@ public class Stuart {
                 .filter(i -> items.get(i).containsKeyword(keyword))
                 .mapToObj(i -> formatNumberedTask(i + 1, items.get(i)));
         String header = "Here are the tasks with keyword: " + keyword + ":";
+        return Stream.concat(Stream.of(header), matchingLines).toArray(String[]::new);
+    }
+
+    /**
+     * Builds the numbered listing lines for the tasks due within {@code days}
+     * days, with a header. Item numbers match their position in the full
+     * task list, so they can be used directly with {@code mark}/
+     * {@code unmark}/{@code delete}.
+     *
+     * @param items the list of stored tasks
+     * @param days how many days ahead to look
+     * @return one header line followed by one line per matching item
+     */
+    private static String[] remindTasks(List<Task> items, int days) {
+        Stream<String> matchingLines = IntStream.range(0, items.size())
+                .filter(i -> items.get(i).isDueSoon(days))
+                .mapToObj(i -> formatNumberedTask(i + 1, items.get(i)));
+        String header = "Here are the tasks due within the next " + days + " day(s):";
         return Stream.concat(Stream.of(header), matchingLines).toArray(String[]::new);
     }
 }

@@ -141,6 +141,27 @@ public class Parser {
     }
 
     /**
+     * Parses a non-negative day count, e.g. for the {@code remind} command's
+     * optional look-ahead window.
+     *
+     * @param text the day-count text to parse
+     * @return the parsed day count
+     * @throws StuartException if {@code text} is not a non-negative integer
+     */
+    public static int parseDayCount(String text) throws StuartException {
+        int days;
+        try {
+            days = Integer.parseInt(text.trim());
+        } catch (NumberFormatException e) {
+            throw new StuartException("\"" + text + "\" is not a valid number of days.");
+        }
+        if (days < 0) {
+            throw new StuartException("The number of days must not be negative.");
+        }
+        return days;
+    }
+
+    /**
      * Parses a date in {@code yyyy-MM-dd} format, e.g. {@code "2019-10-15"}.
      *
      * @param text the date text to parse
