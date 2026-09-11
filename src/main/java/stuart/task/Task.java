@@ -114,6 +114,18 @@ public class Task {
     }
 
     /**
+     * Checks whether this task's relevant date falls within the next
+     * {@code days} days (inclusive of today), and it is not yet done. A
+     * plain to-do is never due soon, since it has no date.
+     *
+     * @param days how many days ahead to look
+     * @return true if this task is due within {@code days} days
+     */
+    public boolean isDueSoon(int days) {
+        return false;
+    }
+
+    /**
      * Checks whether this task contains the keyword inputted.
      * Works for all instances of Task as only requires the task description
      *

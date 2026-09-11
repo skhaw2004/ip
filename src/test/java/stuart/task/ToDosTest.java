@@ -30,4 +30,11 @@ public class ToDosTest {
         task.markAsDone();
         assertFalse(task.isOverdue());
     }
+
+    @Test
+    public void isDueSoon_always_returnsFalse() {
+        ToDos task = new ToDos("eat malatang");
+        assertFalse(task.isDueSoon(3));
+        assertFalse(task.isDueSoon(365));
+    }
 }

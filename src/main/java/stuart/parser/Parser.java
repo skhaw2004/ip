@@ -33,6 +33,8 @@ public class Parser {
         MARK,
         /** Find tasks with a keyword. */
         FIND,
+        /** List tasks due soon. */
+        REMIND,
         /** Mark a task as not done. */
         UNMARK,
         /** Delete a task. */
@@ -116,6 +118,8 @@ public class Parser {
             return new ParsedCommand(CommandType.EVENT, trimmedCommand.substring("event".length()).trim());
         } else if (trimmedCommand.equals("find") || trimmedCommand.startsWith("find ")) {
             return new ParsedCommand(CommandType.FIND, trimmedCommand.substring("find".length()).trim());
+        } else if (trimmedCommand.equals("remind") || trimmedCommand.startsWith("remind ")) {
+            return new ParsedCommand(CommandType.REMIND, trimmedCommand.substring("remind".length()).trim());
         } else {
             return new ParsedCommand(CommandType.UNKNOWN, trimmedCommand);
         }
@@ -134,6 +138,27 @@ public class Parser {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    /**
+     * Parses a non-negative day count, e.g. for the {@code remind} command's
+     * optional look-ahead window.
+     *
+     * @param text the day-count text to parse
+     * @return the parsed day count
+     * @throws StuartException if {@code text} is not a non-negative integer
+     */
+    public static int parseDayCount(String text) throws StuartException {
+        int days;
+        try {
+            days = Integer.parseInt(text.trim());
+        } catch (NumberFormatException e) {
+            throw new StuartException("\"" + text + "\" is not a valid number of days.");
+        }
+        if (days < 0) {
+            throw new StuartException("The number of days must not be negative.");
+        }
+        return days;
     }
 
     /**

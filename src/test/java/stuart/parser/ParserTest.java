@@ -110,6 +110,27 @@ public class ParserTest {
     }
 
     @Test
+    public void parseCommand_remindWithNoArgument_returnsEmptyArguments() {
+        Parser.ParsedCommand result = Parser.parseCommand("remind");
+        assertEquals(Parser.CommandType.REMIND, result.type());
+        assertEquals("", result.arguments());
+    }
+
+    @Test
+    public void parseCommand_remindWithDayCount_returnsRemindTypeWithDayCountArgument() {
+        Parser.ParsedCommand result = Parser.parseCommand("remind 7");
+        assertEquals(Parser.CommandType.REMIND, result.type());
+        assertEquals("7", result.arguments());
+    }
+
+    @Test
+    public void parseCommand_wordStartingWithRemind_notMatchedAsRemindCommand() {
+        Parser.ParsedCommand result = Parser.parseCommand("reminders");
+        assertEquals(Parser.CommandType.UNKNOWN, result.type());
+        assertEquals("reminders", result.arguments());
+    }
+
+    @Test
     public void parseIndex_validNumberWithWhitespace_returnsZeroBasedIndex() {
         int result = Parser.parseIndex("  3  ");
         assertEquals(2, result);
@@ -119,6 +140,28 @@ public class ParserTest {
     public void parseIndex_emptyText_returnsNegativeOne() {
         int result = Parser.parseIndex("");
         assertEquals(-1, result);
+    }
+
+    @Test
+    public void parseDayCount_validNumber_returnsParsedDays() throws StuartException {
+        int result = Parser.parseDayCount("7");
+        assertEquals(7, result);
+    }
+
+    @Test
+    public void parseDayCount_zero_returnsZero() throws StuartException {
+        int result = Parser.parseDayCount("0");
+        assertEquals(0, result);
+    }
+
+    @Test
+    public void parseDayCount_negativeNumber_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseDayCount("-1"));
+    }
+
+    @Test
+    public void parseDayCount_nonNumericText_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseDayCount("soon"));
     }
 
     @Test
