@@ -27,6 +27,14 @@
     -fx-padding: 12 10 12 10;
 }
 
+/* The startup greeting: plain caption text, not a chat bubble. */
+.system-message {
+    -fx-text-fill: #a1704a;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-text-alignment: center;
+}
+
 /* The chili-oil side of the pot: your messages. */
 .bubble-mine {
     -fx-background-color: linear-gradient(to bottom right, #d32f2f, #8e0000);
