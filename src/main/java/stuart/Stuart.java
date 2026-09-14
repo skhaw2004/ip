@@ -266,8 +266,12 @@ public class Stuart {
      *
      * @param task the task to add
      * @return the reply lines to show the user
+     * @throws StuartException if an identical task is already in the list
      */
-    private String[] addTask(Task task) {
+    private String[] addTask(Task task) throws StuartException {
+        if (tasks.containsDuplicateOf(task)) {
+            throw new StuartException("This task already exists in your list.");
+        }
         tasks.add(task);
         storage.save(tasks.getAll(), ui);
         return new String[] {

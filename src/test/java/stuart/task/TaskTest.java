@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.Test;
 
 public class TaskTest {
@@ -83,5 +85,26 @@ public class TaskTest {
     public void containsKeyword_emptyKeyword_returnsTrue() {
         ToDos task = new ToDos("eat malatang");
         assertTrue(task.containsKeyword(""));
+    }
+
+    @Test
+    public void hasSameDetails_sameDescriptionSameClass_returnsTrue() {
+        ToDos task = new ToDos("eat malatang");
+        ToDos other = new ToDos("eat malatang");
+        assertTrue(task.hasSameDetails(other));
+    }
+
+    @Test
+    public void hasSameDetails_differentDescription_returnsFalse() {
+        ToDos task = new ToDos("eat malatang");
+        ToDos other = new ToDos("eat hotpot");
+        assertFalse(task.hasSameDetails(other));
+    }
+
+    @Test
+    public void hasSameDetails_differentConcreteClass_returnsFalse() {
+        ToDos task = new ToDos("eat malatang");
+        Deadlines other = new Deadlines("eat malatang", LocalDate.of(2019, 10, 15));
+        assertFalse(task.hasSameDetails(other));
     }
 }

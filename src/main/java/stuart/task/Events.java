@@ -56,4 +56,11 @@ public class Events extends Task {
         LocalDate today = LocalDate.now();
         return !isDone && !from.isBefore(today) && !from.isAfter(today.plusDays(days));
     }
+
+    @Override
+    public boolean hasSameDetails(Task other) {
+        return super.hasSameDetails(other)
+                && from.equals(((Events) other).from)
+                && to.equals(((Events) other).to);
+    }
 }
