@@ -198,6 +198,12 @@ public class ParserTest {
     }
 
     @Test
+    public void parseDeadlineFields_duplicateByMarker_throwsStuartException() {
+        assertThrows(StuartException.class, () ->
+                Parser.parseDeadlineFields("return book /by 2019-10-15 /by 2019-10-16"));
+    }
+
+    @Test
     public void parseEventFields_validInput_splitsDescriptionFromAndTo() throws StuartException {
         Parser.EventFields result = Parser.parseEventFields("meeting /from 2019-10-15 /to 2019-10-16");
         assertEquals("meeting", result.description());
@@ -214,5 +220,17 @@ public class ParserTest {
     public void parseEventFields_toBeforeFrom_throwsStuartException() {
         assertThrows(StuartException.class, () ->
                 Parser.parseEventFields("meeting /to 2019-10-16 /from 2019-10-15"));
+    }
+
+    @Test
+    public void parseEventFields_duplicateFromMarker_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseEventFields(
+                "meeting /from 2019-10-15 /from 2019-10-16 /to 2019-10-17"));
+    }
+
+    @Test
+    public void parseEventFields_duplicateToMarker_throwsStuartException() {
+        assertThrows(StuartException.class, () -> Parser.parseEventFields(
+                "meeting /from 2019-10-15 /to 2019-10-16 /to 2019-10-17"));
     }
 }

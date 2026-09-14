@@ -207,6 +207,9 @@ public class Parser {
             throw new StuartException("A deadline needs a description and \"/by <yyyy-MM-dd>\", \n"
                     + Ui.TEXT_INDENT + "e.g. deadline return book /by 2019-10-15");
         }
+        if (rest.indexOf("/by", byIndex + 1) != -1) {
+            throw new StuartException("A deadline can only have one \"/by\" date.");
+        }
         String description = rest.substring(0, byIndex).trim();
         String by = rest.substring(byIndex + "/by".length()).trim();
         return new DeadlineFields(description, by);
@@ -229,6 +232,12 @@ public class Parser {
             throw new StuartException(
                     "An event needs a description, \"/from <yyyy-MM-dd>\", and \"/to <yyyy-MM-dd>\", \n"
                     + Ui.TEXT_INDENT + "e.g. event meeting /from 2019-10-15 /to 2019-10-16");
+        }
+        if (rest.indexOf("/from", fromIndex + 1) != -1) {
+            throw new StuartException("An event can only have one \"/from\" date.");
+        }
+        if (rest.indexOf("/to", toIndex + 1) != -1) {
+            throw new StuartException("An event can only have one \"/to\" date.");
         }
         String description = rest.substring(0, fromIndex).trim();
         String from = rest.substring(fromIndex + "/from".length(), toIndex).trim();
