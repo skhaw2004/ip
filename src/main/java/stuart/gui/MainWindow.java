@@ -13,7 +13,6 @@ import stuart.Stuart;
  * Controller for the main GUI, defined in {@code /view/MainWindow.fxml}.
  */
 public class MainWindow extends AnchorPane {
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/messi_ugly.jpeg"));
     private final Image stuartImage = new Image(this.getClass().getResourceAsStream("/images/stuart_chinese.png"));
 
     @FXML
@@ -58,7 +57,7 @@ public class MainWindow extends AnchorPane {
         }
         String stuartText = stuart.getResponse(userText);
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(userText, userImage),
+                DialogBox.getUserDialog(userText),
                 DialogBox.getStuartDialog(stuartText, stuartImage)
         );
         userInput.clear();
