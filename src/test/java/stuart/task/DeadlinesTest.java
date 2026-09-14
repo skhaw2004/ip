@@ -97,4 +97,18 @@ public class DeadlinesTest {
         task.markAsDone();
         assertFalse(task.isDueSoon(3));
     }
+
+    @Test
+    public void hasSameDetails_sameDescriptionSameBy_returnsTrue() {
+        Deadlines task = new Deadlines("return book", LocalDate.of(2019, 10, 15));
+        Deadlines other = new Deadlines("return book", LocalDate.of(2019, 10, 15));
+        assertTrue(task.hasSameDetails(other));
+    }
+
+    @Test
+    public void hasSameDetails_sameDescriptionDifferentBy_returnsFalse() {
+        Deadlines task = new Deadlines("return book", LocalDate.of(2019, 10, 15));
+        Deadlines other = new Deadlines("return book", LocalDate.of(2019, 10, 16));
+        assertFalse(task.hasSameDetails(other));
+    }
 }

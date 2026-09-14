@@ -242,7 +242,8 @@ public class Stuart {
      *
      * @param fields the parsed description, {@code /from}, and {@code /to} text
      * @return the reply lines to show the user
-     * @throws StuartException if the description, {@code /from}, or {@code /to} is empty
+     * @throws StuartException if the description or either date is empty, or
+     *         {@code /from} is not strictly before {@code /to}
      */
     private String[] addEvent(Parser.EventFields fields) throws StuartException {
         if (fields.description().isEmpty()) {
@@ -254,6 +255,9 @@ public class Stuart {
         Parser.checkNoSaveDelimiter(fields.description());
         LocalDate fromDate = Parser.parseDate(fields.from());
         LocalDate toDate = Parser.parseDate(fields.to());
+        if (!fromDate.isBefore(toDate)) {
+            throw new StuartException("An event's \"/from\" date must be before its \"/to\" date.");
+        }
         return addTask(new Events(fields.description(), fromDate, toDate));
     }
 
@@ -262,8 +266,12 @@ public class Stuart {
      *
      * @param task the task to add
      * @return the reply lines to show the user
+     * @throws StuartException if an identical task is already in the list
      */
-    private String[] addTask(Task task) {
+    private String[] addTask(Task task) throws StuartException {
+        if (tasks.containsDuplicateOf(task)) {
+            throw new StuartException("This task already exists in your list.");
+        }
         tasks.add(task);
         storage.save(tasks.getAll(), ui);
         return new String[] {

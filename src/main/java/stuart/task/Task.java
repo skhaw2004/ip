@@ -126,6 +126,20 @@ public class Task {
     }
 
     /**
+     * Checks whether this task has the same details as {@code other}: the
+     * same concrete task type and description, and (for {@link Deadlines}/
+     * {@link Events}) the same relevant date(s). Used to reject adding a
+     * task that's an exact duplicate of one already in the list. Does not
+     * consider done/not-done status, since that's state, not identity.
+     *
+     * @param other the task to compare against
+     * @return true if {@code other} describes the same task as this one
+     */
+    public boolean hasSameDetails(Task other) {
+        return getClass() == other.getClass() && description.equals(other.description);
+    }
+
+    /**
      * Checks whether this task contains the keyword inputted.
      * Works for all instances of Task as only requires the task description
      *

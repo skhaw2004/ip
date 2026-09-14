@@ -51,4 +51,9 @@ public class Deadlines extends Task {
         LocalDate today = LocalDate.now();
         return !isDone && !by.isBefore(today) && !by.isAfter(today.plusDays(days));
     }
+
+    @Override
+    public boolean hasSameDetails(Task other) {
+        return super.hasSameDetails(other) && by.equals(((Deadlines) other).by);
+    }
 }

@@ -115,4 +115,25 @@ public class EventsTest {
         task.markAsDone();
         assertFalse(task.isDueSoon(3));
     }
+
+    @Test
+    public void hasSameDetails_sameDescriptionSameFromAndTo_returnsTrue() {
+        Events task = new Events("meeting", LocalDate.of(2019, 10, 15), LocalDate.of(2019, 10, 16));
+        Events other = new Events("meeting", LocalDate.of(2019, 10, 15), LocalDate.of(2019, 10, 16));
+        assertTrue(task.hasSameDetails(other));
+    }
+
+    @Test
+    public void hasSameDetails_differentFrom_returnsFalse() {
+        Events task = new Events("meeting", LocalDate.of(2019, 10, 15), LocalDate.of(2019, 10, 16));
+        Events other = new Events("meeting", LocalDate.of(2019, 10, 14), LocalDate.of(2019, 10, 16));
+        assertFalse(task.hasSameDetails(other));
+    }
+
+    @Test
+    public void hasSameDetails_differentTo_returnsFalse() {
+        Events task = new Events("meeting", LocalDate.of(2019, 10, 15), LocalDate.of(2019, 10, 16));
+        Events other = new Events("meeting", LocalDate.of(2019, 10, 15), LocalDate.of(2019, 10, 17));
+        assertFalse(task.hasSameDetails(other));
+    }
 }

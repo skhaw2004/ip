@@ -42,6 +42,17 @@ public class TaskList {
     }
 
     /**
+     * Checks whether this list already contains a task with the same
+     * details as {@code candidate} (same type, description, and dates).
+     *
+     * @param candidate the task to check for
+     * @return true if an equivalent task is already in this list
+     */
+    public boolean containsDuplicateOf(Task candidate) {
+        return tasks.stream().anyMatch(t -> t.hasSameDetails(candidate));
+    }
+
+    /**
      * Removes and returns the task at {@code index}.
      *
      * @param index the 0-based index of the task to remove
