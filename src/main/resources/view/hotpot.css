@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: #0e1621;
+    -fx-background-color: #1a0d0a;
     -fx-font-family: "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
 }
@@ -13,7 +13,7 @@
 }
 
 .scroll-pane .scroll-bar:vertical .thumb {
-    -fx-background-color: #2b3947;
+    -fx-background-color: #6b3d1a;
     -fx-background-radius: 4;
 }
 
@@ -23,40 +23,42 @@
     -fx-padding: 12 10 12 10;
 }
 
+/* The chili-oil side of the pot: your messages. */
 .bubble-mine {
-    -fx-background-color: #2b5278;
+    -fx-background-color: linear-gradient(to bottom right, #d32f2f, #8e0000);
     -fx-background-radius: 16 16 4 16;
-    -fx-text-fill: white;
+    -fx-text-fill: #fff3e0;
     -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
 }
 
+/* The mild broth side of the pot: Stuart's replies. */
 .bubble-other {
-    -fx-background-color: #182533;
+    -fx-background-color: #3e2419;
     -fx-background-radius: 16 16 16 4;
-    -fx-text-fill: #e8e8e8;
+    -fx-text-fill: #f4d9a0;
     -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
 }
 
 #userInput {
-    -fx-background-color: #242f3d;
+    -fx-background-color: #2a1810;
     -fx-background-radius: 20;
-    -fx-border-color: #324457;
+    -fx-border-color: #d4a017;
     -fx-border-radius: 20;
     -fx-padding: 8 14 8 14;
-    -fx-text-fill: #e8e8e8;
-    -fx-prompt-text-fill: #6d7883;
+    -fx-text-fill: #f4d9a0;
+    -fx-prompt-text-fill: #a1704a;
 }
 
 #sendButton {
-    -fx-background-color: #4ea4f5;
+    -fx-background-color: #d4a017;
     -fx-background-radius: 22;
-    -fx-text-fill: white;
+    -fx-text-fill: #1a0d0a;
     -fx-font-size: 16px;
     -fx-cursor: hand;
 }
 
 #sendButton:hover {
-    -fx-background-color: #3d8fe0;
+    -fx-background-color: #b8890f;
 }

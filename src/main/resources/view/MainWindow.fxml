@@ -23,7 +23,7 @@
                 onAction="#handleUserInput"
                 prefHeight="44.0"
                 prefWidth="44.0"
-                text="&#10148;"
+                text="&#127798;"
                 AnchorPane.bottomAnchor="1.0"
                 AnchorPane.rightAnchor="1.0" />
         <ScrollPane fx:id="scrollPane"
