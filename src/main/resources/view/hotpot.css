@@ -1,5 +1,9 @@
 .root {
     -fx-background-color: #1a0d0a;
+    -fx-background-image: url("/images/malatang_background.png");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
     -fx-font-family: "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 13px;
 }
@@ -27,18 +31,26 @@
 .bubble-mine {
     -fx-background-color: linear-gradient(to bottom right, #d32f2f, #8e0000);
     -fx-background-radius: 16 16 4 16;
+    -fx-border-color: rgba(212, 160, 23, 0.35);
+    -fx-border-width: 1;
+    -fx-border-radius: 16 16 4 16;
     -fx-text-fill: #fff3e0;
     -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.15, 0, 3);
 }
 
 /* The mild broth side of the pot: Stuart's replies. */
 .bubble-other {
     -fx-background-color: #3e2419;
     -fx-background-radius: 16 16 16 4;
+    -fx-border-color: rgba(212, 160, 23, 0.35);
+    -fx-border-width: 1;
+    -fx-border-radius: 16 16 16 4;
     -fx-text-fill: #f4d9a0;
     -fx-font-weight: bold;
     -fx-padding: 8 14 8 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.15, 0, 3);
 }
 
 #userInput {
