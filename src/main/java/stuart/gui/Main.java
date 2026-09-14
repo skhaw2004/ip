@@ -23,10 +23,12 @@ public class Main extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
             AnchorPane ap = fxmlLoader.load();
             Scene scene = new Scene(ap);
-            scene.getStylesheets().add(Main.class.getResource("/view/telegram.css").toExternalForm());
+            scene.getStylesheets().add(Main.class.getResource("/view/hotpot.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Stuart");
-            stage.setResizable(false);
+            stage.setResizable(true);
+            stage.setMinWidth(300.0);
+            stage.setMinHeight(400.0);
             fxmlLoader.<MainWindow>getController().setStuart(stuart);
             stage.show();
         } catch (IOException e) {

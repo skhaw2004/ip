@@ -16,13 +16,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 
 /**
- * A chat bubble: a small circular avatar next to the speaker's message text,
- * defined in {@code /view/DialogBox.fxml}. Used for both the user's messages
- * and Stuart's replies, styled and mirrored to opposite sides via
- * {@link #getUserDialog} and {@link #getStuartDialog}.
+ * A chat bubble containing a speaker's message text, defined in
+ * {@code /view/DialogBox.fxml}. The conversation is asymmetric - the user
+ * knows it's them without a picture reminding them, so only Stuart's replies
+ * show an avatar; see {@link #getUserDialog} and {@link #getStuartDialog}.
  */
 public class DialogBox extends HBox {
     private static final double AVATAR_SIZE = 36.0;
+
+    /** Wider than the FXML default, since a user bubble has no avatar competing for row width. */
+    private static final double USER_BUBBLE_MAX_WIDTH = 300.0;
 
     @FXML
     private Label dialog;
@@ -40,14 +43,19 @@ public class DialogBox extends HBox {
         }
 
         dialog.setText(text);
-        displayPicture.setImage(img);
-        displayPicture.setClip(new Circle(AVATAR_SIZE / 2, AVATAR_SIZE / 2, AVATAR_SIZE / 2));
+        if (img == null) {
+            displayPicture.setVisible(false);
+            displayPicture.setManaged(false);
+            dialog.setMaxWidth(USER_BUBBLE_MAX_WIDTH);
+        } else {
+            displayPicture.setImage(img);
+            displayPicture.setClip(new Circle(AVATAR_SIZE / 2, AVATAR_SIZE / 2, AVATAR_SIZE / 2));
+        }
     }
 
     /**
-     * Restyles this dialog box as a reply: mirrored so the avatar is on the
-     * left, aligned left, with the "other speaker" bubble color, instead of
-     * the default right-aligned "mine" bubble with the avatar on the right.
+     * Restyles this dialog box as a reply: aligned left, with the "other
+     * speaker" bubble color, instead of the default right-aligned "mine".
      */
     private void flip() {
         setAlignment(Pos.TOP_LEFT);
@@ -58,14 +66,14 @@ public class DialogBox extends HBox {
     }
 
     /**
-     * Creates a dialog box for a message the user sent.
+     * Creates a dialog box for a message the user sent. Shows no avatar,
+     * since the user always knows it was them who sent it.
      *
      * @param text the message text
-     * @param img the user's avatar
-     * @return the dialog box, avatar on the right, in the "mine" bubble color
+     * @return the dialog box, right-aligned, in the "mine" bubble color
      */
-    public static DialogBox getUserDialog(String text, Image img) {
-        DialogBox db = new DialogBox(text, img);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox db = new DialogBox(text, null);
         db.dialog.getStyleClass().add("bubble-mine");
         return db;
     }
