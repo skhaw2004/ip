@@ -24,6 +24,9 @@ import javafx.scene.shape.Circle;
 public class DialogBox extends HBox {
     private static final double AVATAR_SIZE = 36.0;
 
+    /** Wider than the FXML default, since a user bubble has no avatar competing for row width. */
+    private static final double USER_BUBBLE_MAX_WIDTH = 300.0;
+
     @FXML
     private Label dialog;
     @FXML
@@ -43,6 +46,7 @@ public class DialogBox extends HBox {
         if (img == null) {
             displayPicture.setVisible(false);
             displayPicture.setManaged(false);
+            dialog.setMaxWidth(USER_BUBBLE_MAX_WIDTH);
         } else {
             displayPicture.setImage(img);
             displayPicture.setClip(new Circle(AVATAR_SIZE / 2, AVATAR_SIZE / 2, AVATAR_SIZE / 2));
