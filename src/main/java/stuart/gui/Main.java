@@ -26,7 +26,9 @@ public class Main extends Application {
             scene.getStylesheets().add(Main.class.getResource("/view/telegram.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Stuart");
-            stage.setResizable(false);
+            stage.setResizable(true);
+            stage.setMinWidth(300.0);
+            stage.setMinHeight(400.0);
             fxmlLoader.<MainWindow>getController().setStuart(stuart);
             stage.show();
         } catch (IOException e) {
